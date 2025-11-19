@@ -98,8 +98,6 @@ class _ProfilePageState extends ConsumerState<ProfilePage> {
                               )),
                 ),
               ),*/
-
-
               Center(
                 child: Container(
                   width: 72.w,
@@ -189,7 +187,7 @@ class _ProfilePageState extends ConsumerState<ProfilePage> {
                   MaterialPageRoute(builder: (context) => RatingListPage()),
                 );
               }),
-              buildProfile(Icons.insert_drive_file_sharp, "Document", () {
+              buildProfile(Icons.insert_drive_file_sharp, "Documents", () {
                 Navigator.push(
                   context,
                   CupertinoPageRoute(
@@ -261,7 +259,6 @@ class _ProfilePageState extends ConsumerState<ProfilePage> {
                   ],
                 ),
               ),
-
             ],
           );
         },

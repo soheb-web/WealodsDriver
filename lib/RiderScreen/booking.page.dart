@@ -403,6 +403,8 @@ class _BookingPageState extends State<BookingPage> {
 
 }*/
 
+import 'dart:developer';
+
 import 'package:delivery_rider_app/RiderScreen/MapLiveScreen.dart';
 import 'package:delivery_rider_app/RiderScreen/mapRequestDetails.page.dart';
 import 'package:delivery_rider_app/RiderScreen/requestDetails.page.dart';
@@ -442,7 +444,11 @@ class _BookingPageState extends State<BookingPage> {
       setState(() => isLoading = true);
       final dio = await callDio();
       final service = APIStateNetwork(dio);
-      final requestBody = DeliveryHistoryRequestModel(page: 1, limit: 50, key: "");
+      final requestBody = DeliveryHistoryRequestModel(
+        page: 1,
+        limit: 50,
+        key: "",
+      );
       final response = await service.getDeliveryHistory(requestBody);
 
       if (response.code == 0 && response.data != null) {
@@ -473,14 +479,16 @@ class _BookingPageState extends State<BookingPage> {
         return first.name!.isNotEmpty ? first.name : "Drop Location 1";
       }
       if (first is Map<String, dynamic>) {
-        return first['name']?.toString().isNotEmpty == true ? first['name'] : "Drop Location 1";
+        return first['name']?.toString().isNotEmpty == true
+            ? first['name']
+            : "Drop Location 1";
       }
     }
 
     return "Drop Location";
   }
 
-  String _getStatusText(Status status) {
+  String _getStatusText(String status) {
     switch (status.toString()) {
       case 'ongoing':
       case 'picked':
@@ -494,28 +502,45 @@ class _BookingPageState extends State<BookingPage> {
     }
   }
 
-  Color _getStatusBgColor(Status status) {
+  Color _getStatusBgColor(String status) {
     switch (status.toString()) {
       case 'ongoing':
       case 'picked':
-        return const Color(0xFFDF2940);
+        return Colors.grey;
       case 'assigned':
         return const Color(0xFFFFF4C7);
       case 'completed':
         return const Color(0xFF27794D);
       default:
-        return Colors.grey;
+        return Color(0xFFDF2940);
     }
   }
 
-  Color _getStatusTextColor(Status status) {
-    return status.toString() == 'assigned' ? const Color(0xFF7E6604) : Colors.white;
+  Color _getStatusTextColor(String status) {
+    return status.toString() == 'assigned'
+        ? const Color(0xFF7E6604)
+        : Colors.white;
   }
 
   String _formatDate(int timestampMs) {
     final date = DateTime.fromMillisecondsSinceEpoch(timestampMs);
-    final months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
-    final hour = date.hour > 12 ? date.hour - 12 : (date.hour == 0 ? 12 : date.hour);
+    final months = [
+      'Jan',
+      'Feb',
+      'Mar',
+      'Apr',
+      'May',
+      'Jun',
+      'Jul',
+      'Aug',
+      'Sep',
+      'Oct',
+      'Nov',
+      'Dec',
+    ];
+    final hour = date.hour > 12
+        ? date.hour - 12
+        : (date.hour == 0 ? 12 : date.hour);
     final ampm = date.hour >= 12 ? 'PM' : 'AM';
     return "${date.day} ${months[date.month - 1]} ${date.year}, ${hour.toString().padLeft(2, '0')}:${date.minute.toString().padLeft(2, '0')} $ampm";
   }
@@ -529,8 +554,10 @@ class _BookingPageState extends State<BookingPage> {
       list.add(dropoff.lat!);
     } else if (dropoff is List) {
       for (var d in dropoff.take(3)) {
-        if (d is Dropoff) list.add(d.lat!);
-        else if (d is Map<String, dynamic>) list.add((d['lat'] ?? 0.0).toDouble());
+        if (d is Dropoff)
+          list.add(d.lat!);
+        else if (d is Map<String, dynamic>)
+          list.add((d['lat'] ?? 0.0).toDouble());
       }
     }
     return list;
@@ -544,8 +571,10 @@ class _BookingPageState extends State<BookingPage> {
       list.add(dropoff.long!);
     } else if (dropoff is List) {
       for (var d in dropoff.take(3)) {
-        if (d is Dropoff) list.add(d.long!);
-        else if (d is Map<String, dynamic>) list.add((d['long'] ?? 0.0).toDouble());
+        if (d is Dropoff)
+          list.add(d.long!);
+        else if (d is Map<String, dynamic>)
+          list.add((d['long'] ?? 0.0).toDouble());
       }
     }
     return list;
@@ -562,14 +591,18 @@ class _BookingPageState extends State<BookingPage> {
         if (d is Dropoff) {
           list.add(d.name!.isNotEmpty ? d.name! : "Drop Location");
         } else if (d is Map<String, dynamic>) {
-          list.add((d['name']?.toString().isNotEmpty == true) ? d['name'] : "Drop Location");
+          list.add(
+            (d['name']?.toString().isNotEmpty == true)
+                ? d['name']
+                : "Drop Location",
+          );
         }
       }
     }
     return list;
   }
 
-  Future<void> _handleDeliveryTap(String deliveryId, Status status) async {
+  Future<void> _handleDeliveryTap(String deliveryId, String status) async {
     try {
       final dio = await callDio();
       final service = APIStateNetwork(dio);
@@ -615,11 +648,16 @@ class _BookingPageState extends State<BookingPage> {
         }
 
         if (mounted) {
-          await Navigator.push(context, MaterialPageRoute(builder: (_) => targetPage));
+          await Navigator.push(
+            context,
+            MaterialPageRoute(builder: (_) => targetPage),
+          );
           _fetchDeliveryHistory(); // Refresh on back
         }
       } else {
-        Fluttertoast.showToast(msg: response.message ?? "Failed to load details");
+        Fluttertoast.showToast(
+          msg: response.message ?? "Failed to load details",
+        );
       }
     } catch (e) {
       Fluttertoast.showToast(msg: "Error: $e");
@@ -630,7 +668,10 @@ class _BookingPageState extends State<BookingPage> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text("Booking History", style: GoogleFonts.inter(fontWeight: FontWeight.w600)),
+        title: Text(
+          "Booking History",
+          style: GoogleFonts.inter(fontWeight: FontWeight.w600),
+        ),
         backgroundColor: Colors.white,
         foregroundColor: Colors.black,
         elevation: 1,
@@ -638,296 +679,325 @@ class _BookingPageState extends State<BookingPage> {
       body: isLoading
           ? const Center(child: CircularProgressIndicator())
           : deliveryHistory.isEmpty
-          ? Center(child: Text("No bookings yet", style: GoogleFonts.inter(fontSize: 16.sp)))
+          ? Center(
+              child: Text(
+                "No bookings yet",
+                style: GoogleFonts.inter(fontSize: 16.sp),
+              ),
+            )
           : RefreshIndicator(
-        onRefresh: _fetchDeliveryHistory,
-        child:
+              onRefresh: _fetchDeliveryHistory,
+              child: ListView.builder(
+                padding: EdgeInsets.only(top: 10.h, bottom: 80.h),
+                itemCount: deliveryHistory.length,
+                itemBuilder: (context, index) {
+                  final item = deliveryHistory[index];
 
+                  // Safe extraction of dropoff list
+                  List<Pickup> dropoffs = [];
+                  if (item.dropoff != null && item.dropoff!.isNotEmpty) {
+                    dropoffs = item.dropoff!.take(3).toList(); // Max 3
+                  }
+                  log(item.name.toString());
+                  log(item.status.toString());
 
+                  String pretty(String s) => s
+                      .replaceAll('_', ' ')
+                      .split(' ')
+                      .map((w) => w[0].toUpperCase() + w.substring(1))
+                      .join(' ');
 
-
-        ListView.builder(
-          padding: EdgeInsets.only(top: 10.h, bottom: 80.h),
-          itemCount: deliveryHistory.length,
-          itemBuilder: (context, index) {
-            final item = deliveryHistory[index];
-
-            // Safe extraction of dropoff list
-            List<Pickup> dropoffs = [];
-            if (item.dropoff != null && item.dropoff!.isNotEmpty) {
-              dropoffs = item.dropoff!.take(3).toList(); // Max 3
-            }
-
-            return GestureDetector(
-              onTap: () => _handleDeliveryTap(item.id!, item.status!),
-              child: Container(
-                margin: EdgeInsets.symmetric(horizontal: 20.w, vertical: 8.h),
-                padding: EdgeInsets.all(16.w),
-                decoration: BoxDecoration(
-                  color: Colors.white,
-                  borderRadius: BorderRadius.circular(12.r),
-                  boxShadow: [
-                    BoxShadow(
-                      color: Colors.black.withOpacity(0.06),
-                      blurRadius: 12,
-                      offset: const Offset(0, 4),
-                    )
-                  ],
-                ),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    // Top Row: TXID + Status
-                    Row(
-                      children: [
-                        Expanded(
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
+                  return GestureDetector(
+                    onTap: () => _handleDeliveryTap(item.id!, item.status!),
+                    child: Container(
+                      margin: EdgeInsets.symmetric(
+                        horizontal: 20.w,
+                        vertical: 8.h,
+                      ),
+                      padding: EdgeInsets.all(16.w),
+                      decoration: BoxDecoration(
+                        color: Colors.white,
+                        borderRadius: BorderRadius.circular(12.r),
+                        boxShadow: [
+                          BoxShadow(
+                            color: Colors.black.withOpacity(0.06),
+                            blurRadius: 12,
+                            offset: const Offset(0, 4),
+                          ),
+                        ],
+                      ),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          // Top Row: TXID + Status
+                          Row(
                             children: [
-                              Text(
-                                item.txId ?? "N/A",
-                                style: GoogleFonts.inter(
-                                  fontSize: 16.sp,
-                                  fontWeight: FontWeight.w600,
-                                  color: Colors.black87,
+                              Expanded(
+                                child: Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    Text(
+                                      item.txId ?? "N/A",
+                                      style: GoogleFonts.inter(
+                                        fontSize: 16.sp,
+                                        fontWeight: FontWeight.w600,
+                                        color: Colors.black87,
+                                      ),
+                                    ),
+                                    SizedBox(height: 4.h),
+                                    Text(
+                                      "Recipient: ${item.name ?? "Unknown"}",
+                                      style: GoogleFonts.inter(
+                                        fontSize: 13.sp,
+                                        color: Colors.grey[700],
+                                      ),
+                                    ),
+                                  ],
                                 ),
                               ),
-                              SizedBox(height: 4.h),
-                              Text(
-                                "Recipient: ${item.name ?? "Unknown"}",
-                                style: GoogleFonts.inter(
-                                  fontSize: 13.sp,
-                                  color: Colors.grey[700],
+                              Container(
+                                padding: EdgeInsets.symmetric(
+                                  horizontal: 12.w,
+                                  vertical: 6.h,
+                                ),
+                                decoration: BoxDecoration(
+                                  color: _getStatusBgColor(item.status!),
+                                  borderRadius: BorderRadius.circular(8.r),
+                                ),
+                                child: Text(
+                                  pretty(item.status ?? ""),
+                                  // _getStatusText(item.status!),
+                                  style: GoogleFonts.inter(
+                                    fontSize: 12.sp,
+                                    fontWeight: FontWeight.w600,
+                                    color: _getStatusTextColor(item.status!),
+                                  ),
                                 ),
                               ),
                             ],
                           ),
-                        ),
-                        Container(
-                          padding: EdgeInsets.symmetric(horizontal: 12.w, vertical: 6.h),
-                          decoration: BoxDecoration(
-                            color: _getStatusBgColor(item.status!),
-                            borderRadius: BorderRadius.circular(8.r),
-                          ),
-                          child: Text(
-                            _getStatusText(item.status!),
-                            style: GoogleFonts.inter(
-                              fontSize: 12.sp,
-                              fontWeight: FontWeight.w600,
-                              color: _getStatusTextColor(item.status!),
-                            ),
-                          ),
-                        ),
-                      ],
-                    ),
 
-                    SizedBox(height: 14.h),
+                          SizedBox(height: 14.h),
 
-                    // Pickup + Dropoff Locations
-                    Row(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        // Vehicle Icon
-                        Container(
-                          padding: EdgeInsets.all(10.w),
-                          decoration: BoxDecoration(
-                            color: const Color(0xFFF7F7F7),
-                            borderRadius: BorderRadius.circular(10.r),
-                          ),
-                          child: SvgPicture.asset(
-                            "assets/SvgImage/bikess.svg",
-                            width: 28.w,
-                            color: const Color(0xFF006970),
-                          ),
-                        ),
-
-                        SizedBox(width: 14.w),
-
-                        Expanded(
-                          child: Column(
+                          // Pickup + Dropoff Locations
+                          Row(
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
-                              // Pickup Location
-                              Row(
-                                crossAxisAlignment: CrossAxisAlignment.start,
-                                children: [
-                                  Icon(Icons.my_location, size: 18.sp, color: Colors.green),
-                                  SizedBox(width: 8.w),
-                                  Expanded(
-                                    child: Column(
-                                      crossAxisAlignment: CrossAxisAlignment.start,
-                                      children: [
-                                        Text(
-                                          "Pickup",
-                                          style: GoogleFonts.inter(
-                                            fontSize: 13.sp,
-                                            fontWeight: FontWeight.w500,
-                                            color: Colors.grey[800],
-                                          ),
-                                        ),
-                                        SizedBox(height: 2.h),
-                                        Text(
-                                          item.pickup?.name ?? "Pickup Location",
-                                          style: GoogleFonts.inter(
-                                            fontSize: 14.sp,
-                                            fontWeight: FontWeight.w500,
-                                            color: Colors.black87,
-                                          ),
-                                          maxLines: 2,
-                                          overflow: TextOverflow.ellipsis,
-                                        ),
-                                      ],
-                                    ),
-                                  ),
-                                ],
+                              // Vehicle Icon
+                              Container(
+                                padding: EdgeInsets.all(10.w),
+                                decoration: BoxDecoration(
+                                  color: const Color(0xFFF7F7F7),
+                                  borderRadius: BorderRadius.circular(10.r),
+                                ),
+                                child: SvgPicture.asset(
+                                  "assets/SvgImage/bikess.svg",
+                                  width: 28.w,
+                                  color: const Color(0xFF006970),
+                                ),
                               ),
 
-                              SizedBox(height: 12.h),
+                              SizedBox(width: 14.w),
 
-                              // // Multiple Drop Locations (1 to 3)
-                              // ...dropoffs.asMap().entries.map((entry) {
-                              //   int idx = entry.key;
-                              //   final drop = entry.value;
-                              //   bool isFinal = idx == dropoffs.length - 1;
-                              //
-                              //   return Padding(
-                              //     padding: EdgeInsets.only(bottom: 8.h),
-                              //     child: Row(
-                              //       crossAxisAlignment: CrossAxisAlignment.start,
-                              //       children: [
-                              //         // Numbered Red Circle
-                              //         Container(
-                              //           width: 22.w,
-                              //           height: 22.h,
-                              //           decoration: const BoxDecoration(
-                              //             color: Colors.red,
-                              //             shape: BoxShape.circle,
-                              //           ),
-                              //           child: Center(
-                              //             child: Text(
-                              //               "${idx + 1}",
-                              //               style: TextStyle(
-                              //                 color: Colors.white,
-                              //                 fontSize: 11.sp,
-                              //                 fontWeight: FontWeight.bold,
-                              //               ),
-                              //             ),
-                              //           ),
-                              //         ),
-                              //         SizedBox(width: 10.w),
-                              //         Expanded(
-                              //           child: Column(
-                              //             crossAxisAlignment: CrossAxisAlignment.start,
-                              //             children: [
-                              //           Text(
-                              //           "Drop ${idx + 1}${isFinal ? " (Final)" : ""}",
-                              //             style: GoogleFonts.inter(
-                              //               fontSize: 13.sp,
-                              //               fontWeight: FontWeight.w500,
-                              //               color: Colors.grey[800],
-                              //             ),
-                              //           ),
-                              //           SizedBox(height: 2.h,
-                              //             child: Text(
-                              //               drop.name ?? "Drop Location ${idx + 1}",
-                              //               style: GoogleFonts.inter(
-                              //                 fontSize: 14.sp,
-                              //                 fontWeight: FontWeight.w500,
-                              //                 color: Colors.black87,
-                              //               ),
-                              //               maxLines: 2,
-                              //               overflow: TextOverflow.ellipsis,
-                              //             ),
-                              //           ),],
-                              //           ),
-                              //         ),
-                              //       ],
-                              //     ),
-                              //   );
-                              // }).toList(),
-
-                              // Multiple Drop Locations (1 to 3) - Fixed Version
-                              ...dropoffs.asMap().entries.map((entry) {
-                                int idx = entry.key;
-                                final drop = entry.value;
-                                bool isFinal = idx == dropoffs.length - 1;
-
-                                return Padding(
-                                  padding: EdgeInsets.only(bottom: 8.h),
-                                  child: Row(
-                                    crossAxisAlignment: CrossAxisAlignment.start,
-                                    children: [
-                                      // Numbered Red Circle
-                                      Container(
-                                        width: 22.w,
-                                        height: 22.h,
-                                        decoration: const BoxDecoration(
-                                          color: Colors.red,
-                                          shape: BoxShape.circle,
+                              Expanded(
+                                child: Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    // Pickup Location
+                                    Row(
+                                      crossAxisAlignment:
+                                          CrossAxisAlignment.start,
+                                      children: [
+                                        Icon(
+                                          Icons.my_location,
+                                          size: 18.sp,
+                                          color: Colors.green,
                                         ),
-                                        child: Center(
-                                          child: Text(
-                                            "${idx + 1}",
-                                            style: TextStyle(
-                                              color: Colors.white,
-                                              fontSize: 11.sp,
-                                              fontWeight: FontWeight.bold,
-                                            ),
-                                          ),
-                                        ),
-                                      ),
-                                      SizedBox(width: 10.w),
-                                      Expanded(
-                                        child: RichText(
-                                          text: TextSpan(
-                                            style: GoogleFonts.inter(
-                                              fontSize: 14.sp,
-                                              fontWeight: FontWeight.w500,
-                                              color: Colors.black87,
-                                            ),
+                                        SizedBox(width: 8.w),
+                                        Expanded(
+                                          child: Column(
+                                            crossAxisAlignment:
+                                                CrossAxisAlignment.start,
                                             children: [
-                                              TextSpan(text: drop.name ?? "Drop Location ${idx + 1}"),
-                                              if (isFinal)
-                                                TextSpan(
-                                                  text: " (Final)",
-                                                  style: GoogleFonts.inter(
-                                                    fontWeight: FontWeight.w600,
-                                                    color: Colors.red[700],
-                                                  ),
+                                              Text(
+                                                "Pickup",
+                                                style: GoogleFonts.inter(
+                                                  fontSize: 13.sp,
+                                                  fontWeight: FontWeight.w500,
+                                                  color: Colors.grey[800],
                                                 ),
+                                              ),
+                                              SizedBox(height: 2.h),
+                                              Text(
+                                                item.pickup?.name ??
+                                                    "Pickup Location",
+                                                style: GoogleFonts.inter(
+                                                  fontSize: 14.sp,
+                                                  fontWeight: FontWeight.w500,
+                                                  color: Colors.black87,
+                                                ),
+                                                maxLines: 2,
+                                                overflow: TextOverflow.ellipsis,
+                                              ),
                                             ],
                                           ),
                                         ),
+                                      ],
+                                    ),
 
+                                    SizedBox(height: 12.h),
+
+                                    // // Multiple Drop Locations (1 to 3)
+                                    // ...dropoffs.asMap().entries.map((entry) {
+                                    //   int idx = entry.key;
+                                    //   final drop = entry.value;
+                                    //   bool isFinal = idx == dropoffs.length - 1;
+                                    //
+                                    //   return Padding(
+                                    //     padding: EdgeInsets.only(bottom: 8.h),
+                                    //     child: Row(
+                                    //       crossAxisAlignment: CrossAxisAlignment.start,
+                                    //       children: [
+                                    //         // Numbered Red Circle
+                                    //         Container(
+                                    //           width: 22.w,
+                                    //           height: 22.h,
+                                    //           decoration: const BoxDecoration(
+                                    //             color: Colors.red,
+                                    //             shape: BoxShape.circle,
+                                    //           ),
+                                    //           child: Center(
+                                    //             child: Text(
+                                    //               "${idx + 1}",
+                                    //               style: TextStyle(
+                                    //                 color: Colors.white,
+                                    //                 fontSize: 11.sp,
+                                    //                 fontWeight: FontWeight.bold,
+                                    //               ),
+                                    //             ),
+                                    //           ),
+                                    //         ),
+                                    //         SizedBox(width: 10.w),
+                                    //         Expanded(
+                                    //           child: Column(
+                                    //             crossAxisAlignment: CrossAxisAlignment.start,
+                                    //             children: [
+                                    //           Text(
+                                    //           "Drop ${idx + 1}${isFinal ? " (Final)" : ""}",
+                                    //             style: GoogleFonts.inter(
+                                    //               fontSize: 13.sp,
+                                    //               fontWeight: FontWeight.w500,
+                                    //               color: Colors.grey[800],
+                                    //             ),
+                                    //           ),
+                                    //           SizedBox(height: 2.h,
+                                    //             child: Text(
+                                    //               drop.name ?? "Drop Location ${idx + 1}",
+                                    //               style: GoogleFonts.inter(
+                                    //                 fontSize: 14.sp,
+                                    //                 fontWeight: FontWeight.w500,
+                                    //                 color: Colors.black87,
+                                    //               ),
+                                    //               maxLines: 2,
+                                    //               overflow: TextOverflow.ellipsis,
+                                    //             ),
+                                    //           ),],
+                                    //           ),
+                                    //         ),
+                                    //       ],
+                                    //     ),
+                                    //   );
+                                    // }).toList(),
+
+                                    // Multiple Drop Locations (1 to 3) - Fixed Version
+                                    ...dropoffs.asMap().entries.map((entry) {
+                                      int idx = entry.key;
+                                      final drop = entry.value;
+                                      bool isFinal = idx == dropoffs.length - 1;
+
+                                      return Padding(
+                                        padding: EdgeInsets.only(bottom: 8.h),
+                                        child: Row(
+                                          crossAxisAlignment:
+                                              CrossAxisAlignment.start,
+                                          children: [
+                                            // Numbered Red Circle
+                                            Container(
+                                              width: 22.w,
+                                              height: 22.h,
+                                              decoration: const BoxDecoration(
+                                                color: Colors.red,
+                                                shape: BoxShape.circle,
+                                              ),
+                                              child: Center(
+                                                child: Text(
+                                                  "${idx + 1}",
+                                                  style: TextStyle(
+                                                    color: Colors.white,
+                                                    fontSize: 11.sp,
+                                                    fontWeight: FontWeight.bold,
+                                                  ),
+                                                ),
+                                              ),
+                                            ),
+                                            SizedBox(width: 10.w),
+                                            Expanded(
+                                              child: RichText(
+                                                text: TextSpan(
+                                                  style: GoogleFonts.inter(
+                                                    fontSize: 14.sp,
+                                                    fontWeight: FontWeight.w500,
+                                                    color: Colors.black87,
+                                                  ),
+                                                  children: [
+                                                    TextSpan(
+                                                      text:
+                                                          drop.name ??
+                                                          "Drop Location ${idx + 1}",
+                                                    ),
+                                                    if (isFinal)
+                                                      TextSpan(
+                                                        text: " (Final)",
+                                                        style:
+                                                            GoogleFonts.inter(
+                                                              fontWeight:
+                                                                  FontWeight
+                                                                      .w600,
+                                                              color: Colors
+                                                                  .red[700],
+                                                            ),
+                                                      ),
+                                                  ],
+                                                ),
+                                              ),
+                                            ),
+                                          ],
+                                        ),
+                                      );
+                                    }).toList(),
+
+                                    SizedBox(height: 10.h),
+
+                                    // Date & Time
+                                    Text(
+                                      _formatDate(item.createdAt!),
+                                      style: GoogleFonts.inter(
+                                        fontSize: 12.sp,
+                                        color: Colors.grey[600],
                                       ),
-                                    ],
-                                  ),
-                                );
-                              }).toList(),
-
-                              SizedBox(height: 10.h),
-
-                              // Date & Time
-                              Text(
-                                _formatDate(item.createdAt!),
-                                style: GoogleFonts.inter(
-                                  fontSize: 12.sp,
-                                  color: Colors.grey[600],
+                                    ),
+                                  ],
                                 ),
                               ),
                             ],
                           ),
-                        ),
-                      ],
+                        ],
+                      ),
                     ),
-                  ],
-                ),
+                  );
+                },
               ),
-            );
-          },
-        ),
-
-      ),
+            ),
       floatingActionButton: FloatingActionButton(
         onPressed: _fetchDeliveryHistory,
         child: const Icon(Icons.refresh),

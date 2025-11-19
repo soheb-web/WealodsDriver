@@ -25,13 +25,15 @@ class _UpdateUserProfilePageState extends ConsumerState<UpdateUserProfilePage> {
   // ---------- Controllers ----------
   final _firstNameCtrl = TextEditingController();
   final _lastNameCtrl = TextEditingController();
+  final emailController = TextEditingController();
+  final phoneController = TextEditingController();
 
   // ---------- Loading ----------
   bool _isLoading = false;
 
   // ---------- Images ----------
-  File? _pickedImage;                     // newly selected by user
-  String? _networkImageUrl;               // URL that came from API
+  File? _pickedImage; // newly selected by user
+  String? _networkImageUrl; // URL that came from API
   final _picker = ImagePicker();
 
   // -----------------------------------------------------------------
@@ -106,6 +108,14 @@ class _UpdateUserProfilePageState extends ConsumerState<UpdateUserProfilePage> {
           _lastNameCtrl.text = data.lastName ?? '';
         }
 
+        if (emailController.text.isEmpty) {
+          emailController.text = data.email ?? "";
+        }
+
+        if (phoneController.text.isEmpty) {
+          phoneController.text = data.phone ?? "";
+        }
+
         // Profile image URL (only once)
         if (data.image != null &&
             data.image!.isNotEmpty &&
@@ -124,18 +134,34 @@ class _UpdateUserProfilePageState extends ConsumerState<UpdateUserProfilePage> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              SizedBox(height: 66.h),
-
-
-              SizedBox(height: 28.h),
-
+              SizedBox(height: 50.h),
+              InkWell(
+                onTap: () {
+                  Navigator.pop(context);
+                },
+                child: Container(
+                  padding: EdgeInsets.all(6.w),
+                  decoration: BoxDecoration(
+                    color: const Color(0xFF006970),
+                    shape: BoxShape.circle,
+                    boxShadow: [
+                      BoxShadow(
+                        color: Colors.black26,
+                        blurRadius: 4,
+                        offset: const Offset(1, 1),
+                      ),
+                    ],
+                  ),
+                  child: Icon(Icons.arrow_back, size: 18, color: Colors.white),
+                ),
+              ),
+              SizedBox(height: 20.h),
               Text(
                 "Edit Your Profile",
                 style: GoogleFonts.inter(
                   fontSize: 20.sp,
                   fontWeight: FontWeight.w400,
                   color: const Color(0xFF111111),
-                  letterSpacing: -1,
                 ),
               ),
               SizedBox(height: 35.h),
@@ -147,31 +173,40 @@ class _UpdateUserProfilePageState extends ConsumerState<UpdateUserProfilePage> {
                 style: GoogleFonts.inter(
                   fontSize: 16.sp,
                   fontWeight: FontWeight.w500,
-                  color: const Color(0xFF293540),
+                  color: Color(0xFF293540),
                 ),
                 decoration: InputDecoration(
+                  labelText: "First Name",
+                  labelStyle: GoogleFonts.inter(
+                    fontSize: 14.sp,
+                    fontWeight: FontWeight.w400,
+                    color: const Color(0xFF006970),
+                  ),
                   filled: true,
-                  fillColor: const Color(0xFFF0F5F5),
+                  fillColor: Color(0xFFF0F5F5),
                   enabledBorder: OutlineInputBorder(
                     borderRadius: BorderRadius.circular(15.r),
-                    borderSide: BorderSide.none,
+                    borderSide: BorderSide(
+                      color: const Color(0xFF006970).withOpacity(0.3),
+                    ),
                   ),
                   focusedBorder: OutlineInputBorder(
                     borderRadius: BorderRadius.circular(15.r),
                     borderSide: const BorderSide(
                       color: Color(0xFF006970),
-                      width: 1,
+                      width: 1.5,
                     ),
                   ),
-                  hintText: "First Name",
+                  hintText: "Enter First Name",
                   hintStyle: GoogleFonts.inter(
                     fontSize: 14.sp,
                     fontWeight: FontWeight.w400,
                     color: const Color(0xFF787B7B),
                   ),
+                  suffixIcon: Icon(Icons.edit, color: Color(0xFF006970)),
                 ),
                 validator: (v) =>
-                (v?.isEmpty ?? true) ? "First Name is required" : null,
+                    (v?.isEmpty ?? true) ? "First Name is required" : null,
               ),
               SizedBox(height: 20.h),
 
@@ -182,93 +217,191 @@ class _UpdateUserProfilePageState extends ConsumerState<UpdateUserProfilePage> {
                 style: GoogleFonts.inter(
                   fontSize: 16.sp,
                   fontWeight: FontWeight.w500,
-                  color: const Color(0xFF293540),
+                  color: Color(0xFF293540),
                 ),
                 decoration: InputDecoration(
+                  labelText: "First Name",
+                  labelStyle: GoogleFonts.inter(
+                    fontSize: 14.sp,
+                    fontWeight: FontWeight.w400,
+                    color: const Color(0xFF006970),
+                  ),
                   filled: true,
-                  fillColor: const Color(0xFFF0F5F5),
+                  fillColor: Color(0xFFF0F5F5),
                   enabledBorder: OutlineInputBorder(
                     borderRadius: BorderRadius.circular(15.r),
-                    borderSide: BorderSide.none,
+                    borderSide: BorderSide(
+                      color: const Color(0xFF006970).withOpacity(0.3),
+                    ),
                   ),
                   focusedBorder: OutlineInputBorder(
                     borderRadius: BorderRadius.circular(15.r),
                     borderSide: const BorderSide(
-                      color: Color(0xFF1D3557),
-                      width: 1,
+                      color: Color(0xFF006970),
+                      width: 1.5,
                     ),
                   ),
-                  hintText: "Last Name",
+                  hintText: "Enter First Name",
+                  hintStyle: GoogleFonts.inter(
+                    fontSize: 14.sp,
+                    fontWeight: FontWeight.w400,
+                    color: const Color(0xFF787B7B),
+                  ),
+                  suffixIcon: Icon(Icons.edit, color: Color(0xFF006970)),
+                ),
+                validator: (v) =>
+                    (v?.isEmpty ?? true) ? "Last Name is required" : null,
+              ),
+              SizedBox(height: 20.h),
+              TextFormField(
+                onTap: () {
+                  Fluttertoast.showToast(
+                    msg: "You cannot change your registered email",
+                  );
+                },
+                controller: emailController,
+                readOnly: true,
+                keyboardType: TextInputType.name,
+                style: GoogleFonts.inter(
+                  fontSize: 16.sp,
+                  fontWeight: FontWeight.w500,
+                  color: Color(0xFF293540),
+                ),
+                decoration: InputDecoration(
+                  labelText: "Email",
+                  labelStyle: GoogleFonts.inter(
+                    fontSize: 14.sp,
+                    fontWeight: FontWeight.w400,
+                    color: const Color(0xFF006970),
+                  ),
+                  filled: true,
+                  fillColor: Color(0xFFF0F5F5),
+                  enabledBorder: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(15.r),
+                    borderSide: BorderSide(
+                      color: const Color(0xFF006970).withOpacity(0.3),
+                    ),
+                  ),
+                  focusedBorder: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(15.r),
+                    borderSide: BorderSide(
+                      color: const Color(0xFF006970).withOpacity(0.3),
+                    ),
+                  ),
+                  hintText: "Enter Email",
                   hintStyle: GoogleFonts.inter(
                     fontSize: 14.sp,
                     fontWeight: FontWeight.w400,
                     color: const Color(0xFF787B7B),
                   ),
                 ),
-                validator: (v) =>
-                (v?.isEmpty ?? true) ? "Last Name is required" : null,
               ),
               SizedBox(height: 20.h),
 
+              TextFormField(
+                onTap: () {
+                  Fluttertoast.showToast(
+                    msg: "You cannot change your registered Phone Number",
+                  );
+                },
+                controller: phoneController,
+                readOnly: true,
+                keyboardType: TextInputType.name,
+                style: GoogleFonts.inter(
+                  fontSize: 16.sp,
+                  fontWeight: FontWeight.w500,
+                  color: Color(0xFF293540),
+                ),
+                decoration: InputDecoration(
+                  labelText: "Phone",
+                  labelStyle: GoogleFonts.inter(
+                    fontSize: 14.sp,
+                    fontWeight: FontWeight.w400,
+                    color: const Color(0xFF006970),
+                  ),
+                  filled: true,
+                  fillColor: Color(0xFFF0F5F5),
+                  enabledBorder: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(15.r),
+                    borderSide: BorderSide(
+                      color: const Color(0xFF006970).withOpacity(0.3),
+                    ),
+                  ),
+                  focusedBorder: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(15.r),
+                    borderSide: BorderSide(
+                      color: const Color(0xFF006970).withOpacity(0.3),
+                    ),
+                  ),
+                  hintText: "Enter Phone",
+                  hintStyle: GoogleFonts.inter(
+                    fontSize: 14.sp,
+                    fontWeight: FontWeight.w400,
+                    color: const Color(0xFF787B7B),
+                  ),
+                ),
+              ),
+              SizedBox(height: 20.h),
               // ---------- IMAGE BOX ----------
               Center(
                 child: InkWell(
                   onTap: _showPickerSheet,
                   child: Stack(
-                    children:[ Container(
-                      width: 300.w,
-                      height: 200.h,
-                      decoration: BoxDecoration(
-                        color: const Color(0xFFF0F5F5),
-                        borderRadius: BorderRadius.circular(20.r),
-                      ),
-                      child: _pickedImage != null
-                          ? ClipRRect(
-                        borderRadius: BorderRadius.circular(20.r),
-                        child: Image.file(
-                          _pickedImage!,
-                          fit: BoxFit.cover,
-                          width: double.infinity,
-                          height: double.infinity,
+                    children: [
+                      Container(
+                        width: 300.w,
+                        height: 200.h,
+                        decoration: BoxDecoration(
+                          color: const Color(0xFFF0F5F5),
+                          borderRadius: BorderRadius.circular(20.r),
                         ),
-                      )
-                          : _networkImageUrl != null
-                          ? ClipRRect(
-                        borderRadius: BorderRadius.circular(20.r),
-                        child: CachedNetworkImage(
-                          imageUrl: _networkImageUrl!,
-                          fit: BoxFit.cover,
-                          placeholder: (_, __) => const Center(
-                            child: CircularProgressIndicator(
-                              strokeWidth: 2,
-                            ),
-                          ),
-                          errorWidget: (_, __, ___) => const Icon(
-                            Icons.broken_image,
-                            color: Colors.grey,
-                          ),
-                        ),
-                      )
-                          : Column(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: [
-                          Icon(
-                            Icons.upload_sharp,
-                            color: const Color(0xFF008080),
-                            size: 30.sp,
-                          ),
-                          SizedBox(height: 8.h),
-                          Text(
-                            "Upload Image",
-                            style: GoogleFonts.inter(
-                              fontSize: 15.sp,
-                              fontWeight: FontWeight.w400,
-                              color: const Color(0xFF4D4D4D),
-                            ),
-                          ),
-                        ],
+                        child: _pickedImage != null
+                            ? ClipRRect(
+                                borderRadius: BorderRadius.circular(20.r),
+                                child: Image.file(
+                                  _pickedImage!,
+                                  fit: BoxFit.cover,
+                                  width: double.infinity,
+                                  height: double.infinity,
+                                ),
+                              )
+                            : _networkImageUrl != null
+                            ? ClipRRect(
+                                borderRadius: BorderRadius.circular(20.r),
+                                child: CachedNetworkImage(
+                                  imageUrl: _networkImageUrl!,
+                                  fit: BoxFit.cover,
+                                  placeholder: (_, __) => const Center(
+                                    child: CircularProgressIndicator(
+                                      strokeWidth: 2,
+                                    ),
+                                  ),
+                                  errorWidget: (_, __, ___) => const Icon(
+                                    Icons.broken_image,
+                                    color: Colors.grey,
+                                  ),
+                                ),
+                              )
+                            : Column(
+                                mainAxisAlignment: MainAxisAlignment.center,
+                                children: [
+                                  Icon(
+                                    Icons.upload_sharp,
+                                    color: const Color(0xFF008080),
+                                    size: 30.sp,
+                                  ),
+                                  SizedBox(height: 8.h),
+                                  Text(
+                                    "Upload Image",
+                                    style: GoogleFonts.inter(
+                                      fontSize: 15.sp,
+                                      fontWeight: FontWeight.w400,
+                                      color: const Color(0xFF4D4D4D),
+                                    ),
+                                  ),
+                                ],
+                              ),
                       ),
-                    ),
 
                       Positioned(
                         top: 10,
@@ -285,7 +418,9 @@ class _UpdateUserProfilePageState extends ConsumerState<UpdateUserProfilePage> {
                             size: 18.sp,
                           ),
                         ),
-                      ),] ),
+                      ),
+                    ],
+                  ),
                 ),
               ),
               SizedBox(height: 20.h),
@@ -298,26 +433,24 @@ class _UpdateUserProfilePageState extends ConsumerState<UpdateUserProfilePage> {
                     backgroundColor: const Color(0xFF006970),
                     padding: EdgeInsets.symmetric(vertical: 16.h),
                   ),
-                  onPressed: _isLoading
-                      ? null
-                      : () => _updateProfile(),
+                  onPressed: _isLoading ? null : () => _updateProfile(),
                   child: _isLoading
                       ? SizedBox(
-                    width: 30.w,
-                    height: 30.h,
-                    child: const CircularProgressIndicator(
-                      color: Colors.white,
-                      strokeWidth: 2,
-                    ),
-                  )
+                          width: 30.w,
+                          height: 30.h,
+                          child: const CircularProgressIndicator(
+                            color: Colors.white,
+                            strokeWidth: 2,
+                          ),
+                        )
                       : Text(
-                    "Update",
-                    style: GoogleFonts.inter(
-                      fontSize: 15.sp,
-                      fontWeight: FontWeight.w500,
-                      color: const Color(0xFFFFFFFF),
-                    ),
-                  ),
+                          "Update",
+                          style: GoogleFonts.inter(
+                            fontSize: 15.sp,
+                            fontWeight: FontWeight.w500,
+                            color: const Color(0xFFFFFFFF),
+                          ),
+                        ),
                 ),
               ),
               SizedBox(height: 14.h),
@@ -358,13 +491,15 @@ class _UpdateUserProfilePageState extends ConsumerState<UpdateUserProfilePage> {
       final updateRes = await service.updateCutomerProfile(body);
 
       Fluttertoast.showToast(
-        msg: updateRes.message ??
+        msg:
+            updateRes.message ??
             (updateRes.code == 0 ? "Profile updated" : "Update failed"),
       );
 
       if (updateRes.code == 0) {
         // Optional: refresh profile data
-        // ref.invalidate(profileController);
+        ref.invalidate(profileController);
+        ref.refresh(profileController);
         Navigator.pop(context);
       }
     } catch (e, st) {

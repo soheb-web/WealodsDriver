@@ -255,9 +255,11 @@ class Pickup {
 
 import 'dart:convert';
 
-DeliveryHistoryResponseModel deliveryHistoryResponseModelFromJson(String str) => DeliveryHistoryResponseModel.fromJson(json.decode(str));
+DeliveryHistoryResponseModel deliveryHistoryResponseModelFromJson(String str) =>
+    DeliveryHistoryResponseModel.fromJson(json.decode(str));
 
-String deliveryHistoryResponseModelToJson(DeliveryHistoryResponseModel data) => json.encode(data.toJson());
+String deliveryHistoryResponseModelToJson(DeliveryHistoryResponseModel data) =>
+    json.encode(data.toJson());
 
 class DeliveryHistoryResponseModel {
   String? message;
@@ -272,12 +274,13 @@ class DeliveryHistoryResponseModel {
     this.data,
   });
 
-  factory DeliveryHistoryResponseModel.fromJson(Map<String, dynamic> json) => DeliveryHistoryResponseModel(
-    message: json["message"],
-    code: json["code"],
-    error: json["error"],
-    data: json["data"] == null ? null : Data.fromJson(json["data"]),
-  );
+  factory DeliveryHistoryResponseModel.fromJson(Map<String, dynamic> json) =>
+      DeliveryHistoryResponseModel(
+        message: json["message"],
+        code: json["code"],
+        error: json["error"],
+        data: json["data"] == null ? null : Data.fromJson(json["data"]),
+      );
 
   Map<String, dynamic> toJson() => {
     "message": message,
@@ -291,19 +294,22 @@ class Data {
   int? totalCount;
   List<Delivery>? deliveries;
 
-  Data({
-    this.totalCount,
-    this.deliveries,
-  });
+  Data({this.totalCount, this.deliveries});
 
   factory Data.fromJson(Map<String, dynamic> json) => Data(
     totalCount: json["totalCount"],
-    deliveries: json["deliveries"] == null ? [] : List<Delivery>.from(json["deliveries"]!.map((x) => Delivery.fromJson(x))),
+    deliveries: json["deliveries"] == null
+        ? []
+        : List<Delivery>.from(
+            json["deliveries"]!.map((x) => Delivery.fromJson(x)),
+          ),
   );
 
   Map<String, dynamic> toJson() => {
     "totalCount": totalCount,
-    "deliveries": deliveries == null ? [] : List<dynamic>.from(deliveries!.map((x) => x.toJson())),
+    "deliveries": deliveries == null
+        ? []
+        : List<dynamic>.from(deliveries!.map((x) => x.toJson())),
   };
 }
 
@@ -324,9 +330,11 @@ class Delivery {
   double? distance;
   String? mobNo;
   String? picUpType;
-  Name? name;
+  // Name? name;
+  String? name;
   List<Pickup>? dropoff;
-  Status? status;
+  // Status? status;
+  String? status;
   String? cancellationReason;
   PaymentMethod? paymentMethod;
   String? image;
@@ -376,13 +384,17 @@ class Delivery {
 
   factory Delivery.fromJson(Map<String, dynamic> json) => Delivery(
     pickup: json["pickup"] == null ? null : Pickup.fromJson(json["pickup"]),
-    packageDetails: json["packageDetails"] == null ? null : PackageDetails.fromJson(json["packageDetails"]),
+    packageDetails: json["packageDetails"] == null
+        ? null
+        : PackageDetails.fromJson(json["packageDetails"]),
     id: json["_id"],
     customer: customerValues.map[json["customer"]]!,
     deliveryBoy: deliveryBoyValues.map[json["deliveryBoy"]]!,
     pendingDriver: json["pendingDriver"],
     vehicleTypeId: vehicleTypeIdValues.map[json["vehicleTypeId"]]!,
-    rejectedDeliveryBoy: json["rejectedDeliveryBoy"] == null ? [] : List<dynamic>.from(json["rejectedDeliveryBoy"]!.map((x) => x)),
+    rejectedDeliveryBoy: json["rejectedDeliveryBoy"] == null
+        ? []
+        : List<dynamic>.from(json["rejectedDeliveryBoy"]!.map((x) => x)),
     isCopanCode: json["isCopanCode"],
     copanAmount: json["copanAmount"],
     coinAmount: json["coinAmount"],
@@ -391,9 +403,13 @@ class Delivery {
     distance: json["distance"]?.toDouble(),
     mobNo: json["mobNo"],
     picUpType: json["picUpType"],
-    name: nameValues.map[json["name"]]!,
-    dropoff: json["dropoff"] == null ? [] : List<Pickup>.from(json["dropoff"]!.map((x) => Pickup.fromJson(x))),
-    status: statusValues.map[json["status"]]!,
+    // name: nameValues.map[json["name"]]!,
+    name: json['name'],
+    dropoff: json["dropoff"] == null
+        ? []
+        : List<Pickup>.from(json["dropoff"]!.map((x) => Pickup.fromJson(x))),
+    // status: statusValues.map[json["status"]]!,
+    status: json['status'],
     cancellationReason: json["cancellationReason"],
     paymentMethod: paymentMethodValues.map[json["paymentMethod"]]!,
     image: json["image"],
@@ -416,7 +432,9 @@ class Delivery {
     "deliveryBoy": deliveryBoyValues.reverse[deliveryBoy],
     "pendingDriver": pendingDriver,
     "vehicleTypeId": vehicleTypeIdValues.reverse[vehicleTypeId],
-    "rejectedDeliveryBoy": rejectedDeliveryBoy == null ? [] : List<dynamic>.from(rejectedDeliveryBoy!.map((x) => x)),
+    "rejectedDeliveryBoy": rejectedDeliveryBoy == null
+        ? []
+        : List<dynamic>.from(rejectedDeliveryBoy!.map((x) => x)),
     "isCopanCode": isCopanCode,
     "copanAmount": copanAmount,
     "coinAmount": coinAmount,
@@ -425,9 +443,13 @@ class Delivery {
     "distance": distance,
     "mobNo": mobNo,
     "picUpType": picUpType,
-    "name": nameValues.reverse[name],
-    "dropoff": dropoff == null ? [] : List<dynamic>.from(dropoff!.map((x) => x.toJson())),
-    "status": statusValues.reverse[status],
+    // "name": nameValues.reverse[name],
+    "name": name,
+    "dropoff": dropoff == null
+        ? []
+        : List<dynamic>.from(dropoff!.map((x) => x.toJson())),
+    // "status": statusValues.reverse[status],
+    "status": status,
     "cancellationReason": cancellationReason,
     "paymentMethod": paymentMethodValues.reverse[paymentMethod],
     "image": image,
@@ -443,20 +465,16 @@ class Delivery {
   };
 }
 
-enum Customer {
-  THE_68_E5_F744_D1777_FDD770_CC78_D
-}
+enum Customer { THE_68_E5_F744_D1777_FDD770_CC78_D }
 
 final customerValues = EnumValues({
-  "68e5f744d1777fdd770cc78d": Customer.THE_68_E5_F744_D1777_FDD770_CC78_D
+  "68e5f744d1777fdd770cc78d": Customer.THE_68_E5_F744_D1777_FDD770_CC78_D,
 });
 
-enum DeliveryBoy {
-  THE_68_F87_C3_B40938_D4_D2_F2_EB341
-}
+enum DeliveryBoy { THE_68_F87_C3_B40938_D4_D2_F2_EB341 }
 
 final deliveryBoyValues = EnumValues({
-  "68f87c3b40938d4d2f2eb341": DeliveryBoy.THE_68_F87_C3_B40938_D4_D2_F2_EB341
+  "68f87c3b40938d4d2f2eb341": DeliveryBoy.THE_68_F87_C3_B40938_D4_D2_F2_EB341,
 });
 
 class Pickup {
@@ -465,12 +483,7 @@ class Pickup {
   double? long;
   String? id;
 
-  Pickup({
-    this.name,
-    this.lat,
-    this.long,
-    this.id,
-  });
+  Pickup({this.name, this.lat, this.long, this.id});
 
   factory Pickup.fromJson(Map<String, dynamic> json) => Pickup(
     name: json["name"],
@@ -487,64 +500,49 @@ class Pickup {
   };
 }
 
-enum Name {
-  NMBKJ,
-  SAJIV
-}
+// enum Name { NMBKJ, SAJIV }
 
-final nameValues = EnumValues({
-  "nmbkj": Name.NMBKJ,
-  "sajiv": Name.SAJIV
-});
+// final nameValues = EnumValues({"nmbkj": Name.NMBKJ, "sajiv": Name.SAJIV});
 
 class PackageDetails {
   bool? fragile;
 
-  PackageDetails({
-    this.fragile,
-  });
+  PackageDetails({this.fragile});
 
-  factory PackageDetails.fromJson(Map<String, dynamic> json) => PackageDetails(
-    fragile: json["fragile"],
-  );
+  factory PackageDetails.fromJson(Map<String, dynamic> json) =>
+      PackageDetails(fragile: json["fragile"]);
 
-  Map<String, dynamic> toJson() => {
-    "fragile": fragile,
-  };
+  Map<String, dynamic> toJson() => {"fragile": fragile};
 }
 
-enum PaymentMethod {
-  CASH
-}
+enum PaymentMethod { CASH }
 
-final paymentMethodValues = EnumValues({
-  "cash": PaymentMethod.CASH
-});
+final paymentMethodValues = EnumValues({"cash": PaymentMethod.CASH});
 
-enum Status {
-  ASSIGNED,
-  CANCELLED_BY_DRIVER,
-  CANCELLED_BY_USER,
-  COMPLETED,
-  ONGOING
-}
+// enum Status {
+//   ASSIGNED,
+//   CANCELLED_BY_DRIVER,
+//   CANCELLED_BY_USER,
+//   COMPLETED,
+//   ONGOING,
+// }
 
-final statusValues = EnumValues({
-  "assigned": Status.ASSIGNED,
-  "cancelled_by_driver": Status.CANCELLED_BY_DRIVER,
-  "cancelled_by_user": Status.CANCELLED_BY_USER,
-  "completed": Status.COMPLETED,
-  "ongoing": Status.ONGOING
-});
+// final statusValues = EnumValues({
+//   "assigned": Status.ASSIGNED,
+//   "cancelled_by_driver": Status.CANCELLED_BY_DRIVER,
+//   "cancelled_by_user": Status.CANCELLED_BY_USER,
+//   "completed": Status.COMPLETED,
+//   "ongoing": Status.ONGOING,
+// });
 
 enum VehicleTypeId {
   THE_68_CE8516_E9401176157710_F3,
-  THE_68_CE8594_E9401176157710_FB
+  THE_68_CE8594_E9401176157710_FB,
 }
 
 final vehicleTypeIdValues = EnumValues({
   "68ce8516e9401176157710f3": VehicleTypeId.THE_68_CE8516_E9401176157710_F3,
-  "68ce8594e9401176157710fb": VehicleTypeId.THE_68_CE8594_E9401176157710_FB
+  "68ce8594e9401176157710fb": VehicleTypeId.THE_68_CE8594_E9401176157710_FB,
 });
 
 class EnumValues<T> {

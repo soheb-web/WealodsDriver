@@ -10,8 +10,6 @@ import '../config/utils/pretty.dio.dart';
 import '../data/model/driverProfileModel.dart';
 import 'addVihiclePage.dart';
 
-
-
 final driverProfileProvider = FutureProvider<DriverProfileModel>((ref) async {
   final dio = await callDio();
   final service = APIStateNetwork(dio);
@@ -60,27 +58,24 @@ class _VihicalPageState extends ConsumerState<VihicalPage> {
           ),
         ),
         actions: [
-          GestureDetector(
-            onTap: () {},
-            child: Container(
-              decoration: const BoxDecoration(),
-              margin: EdgeInsets.only(right: 10.w),
-              child: IconButton(
-                style: IconButton.styleFrom(
-                  backgroundColor: const Color(0xFFF0F5F5),
-                ),
-                onPressed: () {
-                  Navigator.push(
-                    context,
-                    MaterialPageRoute(
-                      builder: (context) => const AddVihiclePage(),
-                    ),
-                  ).then((_) {
-                    ref.invalidate(driverProfileProvider);
-                  });
-                },
-                icon: const Icon(Icons.add),
+          Container(
+            decoration: const BoxDecoration(),
+            margin: EdgeInsets.only(right: 10.w),
+            child: IconButton(
+              style: IconButton.styleFrom(
+                backgroundColor: const Color(0xFFF0F5F5),
               ),
+              onPressed: () {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (context) => const AddVihiclePage(),
+                  ),
+                ).then((_) {
+                  ref.invalidate(driverProfileProvider);
+                });
+              },
+              icon: const Icon(Icons.add),
             ),
           ),
         ],
@@ -112,7 +107,8 @@ class _VihicalPageState extends ConsumerState<VihicalPage> {
                           Navigator.push(
                             context,
                             CupertinoPageRoute(
-                              builder: (context) => VihicalDetailsPage(vehicle: vehicle),
+                              builder: (context) =>
+                                  VihicalDetailsPage(vehicle: vehicle),
                             ),
                           ).then((_) {
                             ref.invalidate(driverProfileProvider);
@@ -140,45 +136,53 @@ class _VihicalPageState extends ConsumerState<VihicalPage> {
                                   //   width: 18.w,
                                   //   height: 18.h,
                                   // ),
-                                  vehicleName.toLowerCase().contains('car')?
-                                  SvgPicture.asset(
-                                    "assets/SvgImage/c1.svg",
-                                    width: 18.w,
-                                    height: 18.h,
-                                  ): vehicleName.toLowerCase().contains('truck')?
-                                  SvgPicture.asset(
-                                    "assets/SvgImage/c3.svg",
-                                    width: 18.w,
-                                    height: 18.h,
-                                  ):
-                                  vehicleName.toLowerCase().contains('cycle')?
-                                  SvgPicture.asset(
-                                    "assets/SvgImage/c3.svg",
-                                    width: 18.w,
-                                    height: 18.h,
-                                  ): vehicleName.toLowerCase().contains('bike')?
-                                  SvgPicture.asset(
-                                    "assets/SvgImage/c2.svg",
-                                    width: 18.w,
-                                    height: 18.h,
-                                  ):
-                                  SvgPicture.asset(
-                                    "assets/SvgImage/c3.svg",
-                                    width: 18.w,
-                                    height: 18.h,
-                                  ),
+                                  vehicleName.toLowerCase().contains('car')
+                                      ? SvgPicture.asset(
+                                          "assets/SvgImage/c1.svg",
+                                          width: 18.w,
+                                          height: 18.h,
+                                        )
+                                      : vehicleName.toLowerCase().contains(
+                                          'truck',
+                                        )
+                                      ? SvgPicture.asset(
+                                          "assets/SvgImage/c3.svg",
+                                          width: 18.w,
+                                          height: 18.h,
+                                        )
+                                      : vehicleName.toLowerCase().contains(
+                                          'cycle',
+                                        )
+                                      ? SvgPicture.asset(
+                                          "assets/SvgImage/c3.svg",
+                                          width: 18.w,
+                                          height: 18.h,
+                                        )
+                                      : vehicleName.toLowerCase().contains(
+                                          'bike',
+                                        )
+                                      ? SvgPicture.asset(
+                                          "assets/SvgImage/c2.svg",
+                                          width: 18.w,
+                                          height: 18.h,
+                                        )
+                                      : SvgPicture.asset(
+                                          "assets/SvgImage/c3.svg",
+                                          width: 18.w,
+                                          height: 18.h,
+                                        ),
                                   const Spacer(),
                                   select == index
                                       ? const Icon(
-                                    Icons.check_circle,
-                                    color: Color(0xFF25BC15),
-                                    size: 20,
-                                  )
+                                          Icons.check_circle,
+                                          color: Color(0xFF25BC15),
+                                          size: 20,
+                                        )
                                       : const Icon(
-                                    Icons.circle_outlined,
-                                    color: Color(0xFF898A8D),
-                                    size: 20,
-                                  ),
+                                          Icons.circle_outlined,
+                                          color: Color(0xFF898A8D),
+                                          size: 20,
+                                        ),
                                 ],
                               ),
                               Text(
@@ -190,7 +194,7 @@ class _VihicalPageState extends ConsumerState<VihicalPage> {
                                 ),
                               ),
                               Text(
-                                vehicle.numberPlate ?? '',
+                                "Number Plate : ${vehicle.numberPlate ?? ''}",
                                 style: GoogleFonts.inter(
                                   fontSize: 17.sp,
                                   fontWeight: FontWeight.w400,
@@ -205,16 +209,11 @@ class _VihicalPageState extends ConsumerState<VihicalPage> {
                   },
                 );
               },
-              loading: () => const Center(
-                child: CircularProgressIndicator(),
-              ),
+              loading: () => const Center(child: CircularProgressIndicator()),
               error: (error, stack) => Center(
                 child: Text(
                   'Error loading vehicles: $error',
-                  style: GoogleFonts.inter(
-                    fontSize: 14.sp,
-                    color: Colors.red,
-                  ),
+                  style: GoogleFonts.inter(fontSize: 14.sp, color: Colors.red),
                 ),
               ),
             ),

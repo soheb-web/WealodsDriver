@@ -3001,7 +3001,6 @@ class DeliveryRequest {
   });
 }*/
 
-
 import 'dart:developer';
 import 'dart:async';
 import 'package:delivery_rider_app/RiderScreen/booking.page.dart';
@@ -3198,11 +3197,15 @@ class _HomePageState extends State<HomePage>
           _ensureSocketConnected();
         }
       } else {
-        Fluttertoast.showToast(msg: response.message ?? "Failed to fetch profile");
+        Fluttertoast.showToast(
+          msg: response.message ?? "Failed to fetch profile",
+        );
       }
     } catch (e, st) {
       log("Get Driver Profile Error: $e\n$st");
-      Fluttertoast.showToast(msg: "Something went wrong while fetching profile");
+      Fluttertoast.showToast(
+        msg: "Something went wrong while fetching profile",
+      );
     }
   }
 
@@ -3265,7 +3268,9 @@ class _HomePageState extends State<HomePage>
         Fluttertoast.showToast(msg: "Location permission permanently denied");
         return null;
       }
-      return await Geolocator.getCurrentPosition(desiredAccuracy: LocationAccuracy.high);
+      return await Geolocator.getCurrentPosition(
+        desiredAccuracy: LocationAccuracy.high,
+      );
     } catch (e) {
       log("Error getting location: $e");
       return null;
@@ -3290,7 +3295,9 @@ class _HomePageState extends State<HomePage>
     // Extract dropoff names (max 3)
     final dropoffNames = dropoffList
         .take(3)
-        .map((d) => (d as Map<String, dynamic>)['name']?.toString() ?? 'Unknown')
+        .map(
+          (d) => (d as Map<String, dynamic>)['name']?.toString() ?? 'Unknown',
+        )
         .toList();
 
     final requestWithTimer = DeliveryRequest(
@@ -3312,7 +3319,9 @@ class _HomePageState extends State<HomePage>
     }
 
     // Show popup IMMEDIATELY (if not already showing)
-    if (mounted && ModalRoute.of(context)?.isCurrent == true && !_isPopupShowing) {
+    if (mounted &&
+        ModalRoute.of(context)?.isCurrent == true &&
+        !_isPopupShowing) {
       Future.microtask(() {
         if (mounted) {
           _showRequestPopup(requestWithTimer);
@@ -3407,7 +3416,6 @@ class _HomePageState extends State<HomePage>
         if (mounted) {
           getDriverProfile();
         }
-
       } else {
         Fluttertoast.showToast(msg: response.message ?? "Delivery not found");
       }
@@ -3419,12 +3427,13 @@ class _HomePageState extends State<HomePage>
     }
   }
 
-
   Future<void> _acceptRequest(dynamic payload) async {
     log("Booking Request Received: $payload");
     try {
       final data = Map<String, dynamic>.from(payload);
-      final deliveries = List<Map<String, dynamic>>.from(data['deliveries'] ?? []);
+      final deliveries = List<Map<String, dynamic>>.from(
+        data['deliveries'] ?? [],
+      );
       if (deliveries.isEmpty) return;
       if (mounted) {
         setState(() => availableRequests = deliveries);
@@ -3436,27 +3445,39 @@ class _HomePageState extends State<HomePage>
 
   void _acceptDelivery(String deliveryId) {
     if (socket != null && socket!.connected) {
-      socket!.emitWithAck('delivery:accept', {'deliveryId': deliveryId}, ack: (ackData) {
-        print('Accept ack: $ackData');
-      });
+      socket!.emitWithAck(
+        'delivery:accept',
+        {'deliveryId': deliveryId},
+        ack: (ackData) {
+          print('Accept ack: $ackData');
+        },
+      );
       Fluttertoast.showToast(msg: "Delivery Accepted!");
     }
   }
 
   void _deliveryAcceptDelivery(String deliveryId) {
     if (socket != null && socket!.connected) {
-      socket!.emitWithAck('delivery:accept_request', {'deliveryId': deliveryId}, ack: (ackData) {
-        print('Accept ack: $ackData');
-      });
+      socket!.emitWithAck(
+        'delivery:accept_request',
+        {'deliveryId': deliveryId},
+        ack: (ackData) {
+          print('Accept ack: $ackData');
+        },
+      );
       Fluttertoast.showToast(msg: "Delivery Accepted!");
     }
   }
 
   void _skipDelivery(String deliveryId) {
     if (socket != null && socket!.connected) {
-      socket!.emitWithAck('delivery:skip', {'deliveryId': deliveryId}, ack: (ackData) {
-        print('Skip ack: $ackData');
-      });
+      socket!.emitWithAck(
+        'delivery:skip',
+        {'deliveryId': deliveryId},
+        ack: (ackData) {
+          print('Skip ack: $ackData');
+        },
+      );
       Fluttertoast.showToast(msg: "Delivery Rejected!");
     }
   }
@@ -3502,8 +3523,13 @@ class _HomePageState extends State<HomePage>
       barrierDismissible: false,
       builder: (dialogContext) {
         return AlertDialog(
-          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16.r)),
-          title: Text(req.category, style: const TextStyle(fontWeight: FontWeight.bold)),
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(16.r),
+          ),
+          title: Text(
+            req.category,
+            style: const TextStyle(fontWeight: FontWeight.bold),
+          ),
           content: Column(
             mainAxisSize: MainAxisSize.min,
             crossAxisAlignment: CrossAxisAlignment.start,
@@ -3519,18 +3545,34 @@ class _HomePageState extends State<HomePage>
               SizedBox(height: 8.h),
 
               // Dropoffs
-              Text("Dropoffs (${req.dropOffLocations.length}):", style: TextStyle(fontWeight: FontWeight.w600)),
+              Text(
+                "Dropoffs (${req.dropOffLocations.length}):",
+                style: TextStyle(fontWeight: FontWeight.w600),
+              ),
               SizedBox(height: 4.h),
-              ...req.dropOffLocations.map((drop) => Padding(
-                padding: EdgeInsets.only(left: 20.w, bottom: 4.h),
-                child: Row(
-                  children: [
-                    Icon(Icons.subdirectory_arrow_right, size: 14.sp, color: Colors.green),
-                    SizedBox(width: 4.w),
-                    Expanded(child: Text(drop, style: TextStyle(fontSize: 13.sp))),
-                  ],
-                ),
-              )).toList(),
+              ...req.dropOffLocations
+                  .map(
+                    (drop) => Padding(
+                      padding: EdgeInsets.only(left: 20.w, bottom: 4.h),
+                      child: Row(
+                        children: [
+                          Icon(
+                            Icons.subdirectory_arrow_right,
+                            size: 14.sp,
+                            color: Colors.green,
+                          ),
+                          SizedBox(width: 4.w),
+                          Expanded(
+                            child: Text(
+                              drop,
+                              style: TextStyle(fontSize: 13.sp),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  )
+                  .toList(),
 
               SizedBox(height: 12.h),
 
@@ -3573,7 +3615,10 @@ class _HomePageState extends State<HomePage>
                 NotificationService.instance.stopBuzzer();
                 _isPopupShowing = false;
               },
-              child: const Text("Accept", style: TextStyle(color: Colors.white)),
+              child: const Text(
+                "Accept",
+                style: TextStyle(color: Colors.white),
+              ),
             ),
           ],
         );
@@ -3592,122 +3637,198 @@ class _HomePageState extends State<HomePage>
       backgroundColor: Colors.white,
       body: selectIndex == 0
           ? Padding(
-        padding: EdgeInsets.only(left: 24.w, right: 24.w, top: 55.h),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            // Header
-            Row(
-              children: [
-                Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text("Welcome Back", style: TextStyle(fontSize: 14.sp)),
-                    Text("$firstName $lastName", style: TextStyle(fontSize: 16.sp, fontWeight: FontWeight.bold)),
-                  ],
-                ),
-                const Spacer(),
-                IconButton(onPressed: () {}, icon: Icon(Icons.notifications)),
-                InkWell(
-                  onTap: () => setState(() => selectIndex = 3),
-                  child: Container(
-                    margin: EdgeInsets.only(left: 5.w),
-                    width: 35.w,
-                    height: 35.h,
-                    decoration: const BoxDecoration(shape: BoxShape.circle, color: Color(0xFFA8DADC)),
-                    child: Center(child: Text(firstName.isNotEmpty ? "${firstName[0]}${lastName[0]}" : "AS")),
-                  ),
-                ),
-              ],
-            ),
-            SizedBox(height: 10.h),
-
-            // Online/Offline Switch
-            Container(
-              padding: EdgeInsets.symmetric(horizontal: 12.w, vertical: 4.h),
-              decoration: BoxDecoration(
-                color: isDriverOnline ? Colors.green.withOpacity(0.2) : Colors.red.withOpacity(0.2),
-                borderRadius: BorderRadius.circular(20.r),
-                border: Border.all(color: isDriverOnline ? Colors.green : Colors.red, width: 1.5),
-              ),
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              padding: EdgeInsets.only(left: 24.w, right: 24.w, top: 55.h),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
+                  // Header
                   Row(
                     children: [
-                      Icon(isDriverOnline ? Icons.circle : Icons.circle_outlined, color: isDriverOnline ? Colors.green : Colors.red, size: 16.sp),
-                      SizedBox(width: 6.w),
-                      Text(isDriverOnline ? "ONLINE" : "OFFLINE", style: TextStyle(fontSize: 12.sp, fontWeight: FontWeight.bold, color: isDriverOnline ? Colors.green : Colors.red)),
+                      Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            "Welcome Back",
+                            style: TextStyle(fontSize: 14.sp),
+                          ),
+                          Text(
+                            "$firstName $lastName",
+                            style: TextStyle(
+                              fontSize: 16.sp,
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
+                        ],
+                      ),
+                      const Spacer(),
+                      IconButton(
+                        onPressed: () {},
+                        icon: Icon(Icons.notifications),
+                      ),
+                      InkWell(
+                        onTap: () => setState(() => selectIndex = 3),
+                        child: Container(
+                          margin: EdgeInsets.only(left: 5.w),
+                          width: 35.w,
+                          height: 35.h,
+                          decoration: const BoxDecoration(
+                            shape: BoxShape.circle,
+                            color: Color(0xFFA8DADC),
+                          ),
+                          child: Center(
+                            child: Text(
+                              firstName.isNotEmpty
+                                  ? "${firstName[0]}${lastName[0]}"
+                                  : "AS",
+                            ),
+                          ),
+                        ),
+                      ),
                     ],
                   ),
-                  Switch(
-                    value: isDriverOnline,
-                    activeColor: Colors.green,
-                    inactiveThumbColor: Colors.red,
-                    inactiveTrackColor: Colors.red.withOpacity(0.3),
-                    onChanged: (value) async {
-                      setState(() => isDriverOnline = value);
-                      if (value) {
-                        Fluttertoast.showToast(msg: "Going Online...");
-                        await getDriverProfile();
-                        _ensureSocketConnected();
-                      } else {
-                        Fluttertoast.showToast(msg: "You are now Offline");
-                        _disconnectSocket();
-                        _locationTimer?.cancel();
-                        availableRequests.clear();
-                        setState(() {});
-                      }
-                    },
+                  SizedBox(height: 10.h),
+
+                  // Online/Offline Switch
+                  Container(
+                    padding: EdgeInsets.symmetric(
+                      horizontal: 12.w,
+                      vertical: 4.h,
+                    ),
+                    decoration: BoxDecoration(
+                      color: isDriverOnline
+                          ? Colors.green.withOpacity(0.2)
+                          : Colors.red.withOpacity(0.2),
+                      borderRadius: BorderRadius.circular(20.r),
+                      border: Border.all(
+                        color: isDriverOnline ? Colors.green : Colors.red,
+                        width: 1.5,
+                      ),
+                    ),
+                    child: Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        Row(
+                          children: [
+                            Icon(
+                              isDriverOnline
+                                  ? Icons.circle
+                                  : Icons.circle_outlined,
+                              color: isDriverOnline ? Colors.green : Colors.red,
+                              size: 16.sp,
+                            ),
+                            SizedBox(width: 6.w),
+                            Text(
+                              isDriverOnline ? "ONLINE" : "OFFLINE",
+                              style: TextStyle(
+                                fontSize: 12.sp,
+                                fontWeight: FontWeight.bold,
+                                color: isDriverOnline
+                                    ? Colors.green
+                                    : Colors.red,
+                              ),
+                            ),
+                          ],
+                        ),
+                        Switch(
+                          value: isDriverOnline,
+                          activeColor: Colors.green,
+                          inactiveThumbColor: Colors.red,
+                          inactiveTrackColor: Colors.red.withOpacity(0.3),
+                          onChanged: (value) async {
+                            setState(() => isDriverOnline = value);
+                            if (value) {
+                              Fluttertoast.showToast(msg: "Going Online...");
+                              await getDriverProfile();
+                              _ensureSocketConnected();
+                            } else {
+                              Fluttertoast.showToast(
+                                msg: "You are now Offline",
+                              );
+                              _disconnectSocket();
+                              _locationTimer?.cancel();
+                              availableRequests.clear();
+                              setState(() {});
+                            }
+                          },
+                        ),
+                      ],
+                    ),
+                  ),
+                  SizedBox(height: 16.h),
+
+                  // Identity & Vehicle Cards
+                  if (status == "pending") ...[
+                    GestureDetector(
+                      onTap: () => Navigator.push(
+                        context,
+                        MaterialPageRoute(builder: (_) => IdentityCardPage()),
+                      ).then((_) => getDriverProfile()),
+                      child: _buildVerificationCard(
+                        "Identity Verification",
+                        "Add your driving license...",
+                      ),
+                    ),
+                    SizedBox(height: 10.h),
+                    GestureDetector(
+                      onTap: () => Navigator.push(
+                        context,
+                        MaterialPageRoute(builder: (_) => VihicalPage()),
+                      ).then((_) => getDriverProfile()),
+                      child: _buildVerificationCard(
+                        "Add Vehicle",
+                        "Upload insurance and registration...",
+                      ),
+                    ),
+                  ],
+
+                  // Balance + Search + Requests
+                  Expanded(
+                    child: SingleChildScrollView(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          _buildBalanceCard(),
+                          Divider(color: Color(0xFFE5E5E5)),
+                          SizedBox(height: 15.h),
+                          Text(
+                            "Would you like to specify direction for deliveries?",
+                            style: GoogleFonts.inter(
+                              fontSize: 13.sp,
+                              color: Color(0xFF111111),
+                            ),
+                          ),
+                          SizedBox(height: 4.h),
+                          _buildSearchField(),
+                          SizedBox(height: 16.h),
+                          Row(
+                            children: [
+                              Text(
+                                "Available Requests",
+                                style: GoogleFonts.inter(
+                                  fontSize: 14.sp,
+                                  fontWeight: FontWeight.w500,
+                                ),
+                              ),
+                              Spacer(),
+                              Text(
+                                "View all",
+                                style: GoogleFonts.inter(
+                                  fontSize: 13.sp,
+                                  color: Color(0xFF006970),
+                                ),
+                              ),
+                            ],
+                          ),
+                          availableRequests.isEmpty
+                              ? _buildEmptyState()
+                              : _buildRequestList(),
+                        ],
+                      ),
+                    ),
                   ),
                 ],
               ),
-            ),
-            SizedBox(height: 16.h),
-
-            // Identity & Vehicle Cards
-            if (status == "pending") ...[
-              GestureDetector(
-                onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => IdentityCardPage())).then((_) => getDriverProfile()),
-                child: _buildVerificationCard("Identity Verification", "Add your driving license..."),
-              ),
-              SizedBox(height: 10.h),
-              GestureDetector(
-                onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => VihicalPage())).then((_) => getDriverProfile()),
-                child: _buildVerificationCard("Add Vehicle", "Upload insurance and registration..."),
-              ),
-            ],
-
-            // Balance + Search + Requests
-            Expanded(
-              child: SingleChildScrollView(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    _buildBalanceCard(),
-                    Divider(color: Color(0xFFE5E5E5)),
-                    SizedBox(height: 15.h),
-                    Text("Would you like to specify direction for deliveries?", style: GoogleFonts.inter(fontSize: 13.sp, color: Color(0xFF111111))),
-                    SizedBox(height: 4.h),
-                    _buildSearchField(),
-                    SizedBox(height: 16.h),
-                    Row(
-                      children: [
-                        Text("Available Requests", style: GoogleFonts.inter(fontSize: 14.sp, fontWeight: FontWeight.w500)),
-                        Spacer(),
-                        Text("View all", style: GoogleFonts.inter(fontSize: 13.sp, color: Color(0xFF006970))),
-                      ],
-                    ),
-                    availableRequests.isEmpty
-                        ? _buildEmptyState()
-                        : _buildRequestList(),
-                  ],
-                ),
-              ),
-            ),
-          ],
-        ),
-      )
+            )
           : selectIndex == 1
           ? EarningPage()
           : selectIndex == 2
@@ -3726,9 +3847,18 @@ class _HomePageState extends State<HomePage>
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text(title, style: GoogleFonts.inter(fontSize: 14.sp, fontWeight: FontWeight.w600)),
+          Text(
+            title,
+            style: GoogleFonts.inter(
+              fontSize: 14.sp,
+              fontWeight: FontWeight.w600,
+            ),
+          ),
           SizedBox(height: 5.h),
-          Text(subtitle, style: GoogleFonts.inter(fontSize: 12.sp, color: Color(0xFF111111))),
+          Text(
+            subtitle,
+            style: GoogleFonts.inter(fontSize: 12.sp, color: Color(0xFF111111)),
+          ),
         ],
       ),
     );
@@ -3737,7 +3867,10 @@ class _HomePageState extends State<HomePage>
   Widget _buildBalanceCard() {
     return Container(
       padding: const EdgeInsets.all(8),
-      decoration: BoxDecoration(borderRadius: BorderRadius.circular(4.r), color: const Color(0xFFD1E5E6)),
+      decoration: BoxDecoration(
+        borderRadius: BorderRadius.circular(4.r),
+        color: const Color(0xFFD1E5E6),
+      ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -3745,8 +3878,14 @@ class _HomePageState extends State<HomePage>
           SizedBox(height: 3.h),
           Row(
             children: [
-              Text(isVisible ? "₹ $balance" : "₹ ••••", style: TextStyle(fontWeight: FontWeight.bold)),
-              IconButton(onPressed: () => setState(() => isVisible = !isVisible), icon: Icon(isVisible ? Icons.visibility : Icons.visibility_off)),
+              Text(
+                isVisible ? "₹ $balance" : "₹ ••••",
+                style: TextStyle(fontWeight: FontWeight.bold),
+              ),
+              IconButton(
+                onPressed: () => setState(() => isVisible = !isVisible),
+                icon: Icon(isVisible ? Icons.visibility : Icons.visibility_off),
+              ),
             ],
           ),
         ],
@@ -3758,7 +3897,7 @@ class _HomePageState extends State<HomePage>
     return TextField(
       onChanged: (value) async {
         final keyword = value.trim();
-        if (socket != null && socket!.connected ) {
+        if (socket != null && socket!.connected) {
           final position = await _getCurrentLocation();
           if (position != null) {
             socket!.emit('booking:request', {
@@ -3774,11 +3913,21 @@ class _HomePageState extends State<HomePage>
         contentPadding: EdgeInsets.symmetric(horizontal: 15.w, vertical: 10.h),
         filled: true,
         fillColor: Color(0xFFF0F5F5),
-        enabledBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(5.r), borderSide: BorderSide.none),
-        focusedBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(5.r), borderSide: BorderSide.none),
+        enabledBorder: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(5.r),
+          borderSide: BorderSide.none,
+        ),
+        focusedBorder: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(5.r),
+          borderSide: BorderSide.none,
+        ),
         hintText: "Where to?",
         hintStyle: GoogleFonts.inter(fontSize: 14.sp, color: Color(0xFFAFAFAF)),
-        prefixIcon: Icon(Icons.circle_outlined, color: Color(0xFF28B877), size: 18.sp),
+        prefixIcon: Icon(
+          Icons.circle_outlined,
+          color: Color(0xFF28B877),
+          size: 18.sp,
+        ),
       ),
     );
   }
@@ -3792,7 +3941,13 @@ class _HomePageState extends State<HomePage>
           SizedBox(height: 16.h),
           Text("Waiting for new delivery requests..."),
           SizedBox(height: 8.h),
-          Text("Socket: ${isSocketConnected ? 'Connected' : 'Disconnected'}", style: TextStyle(color: isSocketConnected ? Colors.green : Colors.red, fontSize: 12.sp)),
+          Text(
+            "Socket: ${isSocketConnected ? 'Connected' : 'Disconnected'}",
+            style: TextStyle(
+              color: isSocketConnected ? Colors.green : Colors.red,
+              fontSize: 12.sp,
+            ),
+          ),
         ],
       ),
     );
@@ -3872,7 +4027,6 @@ class _HomePageState extends State<HomePage>
   //   );
   // }
 
-
   Widget _buildRequestList() {
     return ListView.builder(
       padding: EdgeInsets.only(top: 10.h),
@@ -3895,7 +4049,11 @@ class _HomePageState extends State<HomePage>
             // Multiple dropoffs
             dropoffNames = dropoffData
                 .take(3)
-                .map((d) => (d as Map<String, dynamic>)['name']?.toString() ?? 'Unknown Drop')
+                .map(
+                  (d) =>
+                      (d as Map<String, dynamic>)['name']?.toString() ??
+                      'Unknown Drop',
+                )
                 .toList();
           } else if (dropoffData is Map<String, dynamic>) {
             // Single dropoff (server ne List nahi, direct object bheja)
@@ -3911,7 +4069,9 @@ class _HomePageState extends State<HomePage>
             : dropoffNames.join(" → ");
 
         return Card(
-          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20.r)),
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(20.r),
+          ),
           color: const Color(0xFFF0F5F5),
           margin: EdgeInsets.only(bottom: 10.h),
           child: Padding(
@@ -3925,10 +4085,20 @@ class _HomePageState extends State<HomePage>
                     Expanded(
                       child: Text(
                         "Pickup: $pickup",
-                        style:  TextStyle(fontWeight: FontWeight.w600, fontSize: 14.sp),
+                        style: TextStyle(
+                          fontWeight: FontWeight.w600,
+                          fontSize: 14.sp,
+                        ),
                       ),
                     ),
-                    Text("₹$price", style: TextStyle(color: Colors.green, fontWeight: FontWeight.w600, fontSize: 16.sp)),
+                    Text(
+                      "₹$price",
+                      style: TextStyle(
+                        color: Colors.green,
+                        fontWeight: FontWeight.w600,
+                        fontSize: 16.sp,
+                      ),
+                    ),
                   ],
                 ),
                 SizedBox(height: 8.h),
@@ -3938,20 +4108,31 @@ class _HomePageState extends State<HomePage>
                   style: TextStyle(fontSize: 13.sp, color: Colors.black87),
                 ),
                 SizedBox(height: 6.h),
-                Text("Distance: $distance km", style: TextStyle(fontSize: 12.sp, color: Colors.grey[700])),
+                Text(
+                  "Distance: $distance km",
+                  style: TextStyle(fontSize: 12.sp, color: Colors.grey[700]),
+                ),
                 SizedBox(height: 12.h),
 
                 Row(
                   mainAxisAlignment: MainAxisAlignment.end,
                   children: [
                     ElevatedButton(
-                      onPressed: () => _deliveryAcceptDelivery(req['_id'] ?? req['deliveryId']),
-                      style: ElevatedButton.styleFrom(backgroundColor: const Color(0xFF006970)),
-                      child: const Text("Accept", style: TextStyle(color: Colors.white)),
+                      onPressed: () => _deliveryAcceptDelivery(
+                        req['_id'] ?? req['deliveryId'],
+                      ),
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: const Color(0xFF006970),
+                      ),
+                      child: const Text(
+                        "Accept",
+                        style: TextStyle(color: Colors.white),
+                      ),
                     ),
                     SizedBox(width: 10.w),
                     OutlinedButton(
-                      onPressed: () => _rejectDelivery(req['_id'] ?? req['deliveryId']),
+                      onPressed: () =>
+                          _rejectDelivery(req['_id'] ?? req['deliveryId']),
                       child: const Text("Reject"),
                     ),
                   ],
@@ -3963,9 +4144,14 @@ class _HomePageState extends State<HomePage>
       },
     );
   }
+
   Future<void> _rejectDelivery(String deliveryId) async {
     try {
-      final body = RejectDeliveryBodyModel(deliveryId: deliveryId, lat: lattitude.toString(), lon: longutude.toString());
+      final body = RejectDeliveryBodyModel(
+        deliveryId: deliveryId,
+        lat: lattitude.toString(),
+        lon: longutude.toString(),
+      );
       final service = APIStateNetwork(callDio());
       final response = await service.rejectDelivery(body);
       Fluttertoast.showToast(msg: response.message ?? "Rejected");
@@ -3973,18 +4159,31 @@ class _HomePageState extends State<HomePage>
       Fluttertoast.showToast(msg: "Error: $e");
     }
   }
+
   Widget _buildBottomNavigationBar() {
     return Container(
       decoration: BoxDecoration(
-        borderRadius: BorderRadius.only(topLeft: Radius.circular(10.r), topRight: Radius.circular(10.r)),
+        borderRadius: BorderRadius.only(
+          topLeft: Radius.circular(10.r),
+          topRight: Radius.circular(10.r),
+        ),
         color: Colors.white,
-        boxShadow: [BoxShadow(offset: Offset(0, -2), blurRadius: 30, color: Colors.black12)],
+        boxShadow: [
+          BoxShadow(
+            offset: Offset(0, -2),
+            blurRadius: 30,
+            color: Colors.black12,
+          ),
+        ],
       ),
       child: BottomNavigationBar(
         onTap: (value) {
           setState(() => selectIndex = value);
           if (value == 0 && isDriverOnline) {
-            Future.delayed(const Duration(milliseconds: 300), _ensureSocketConnected);
+            Future.delayed(
+              const Duration(milliseconds: 300),
+              _ensureSocketConnected,
+            );
           }
         },
         currentIndex: selectIndex,
@@ -4000,6 +4199,7 @@ class _HomePageState extends State<HomePage>
       ),
     );
   }
+
   BottomNavigationBarItem _navItem(String asset, String label) {
     return BottomNavigationBarItem(
       icon: SvgPicture.asset(asset, color: Color(0xFFC0C5C2)),
@@ -4027,6 +4227,3 @@ class DeliveryRequest {
     required this.countdown,
   });
 }
-
-
-

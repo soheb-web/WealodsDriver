@@ -14,7 +14,7 @@ import 'package:google_fonts/google_fonts.dart';
 
 class SupportPage extends ConsumerStatefulWidget {
   final IO.Socket socket;
-  const SupportPage(this.socket,{super.key});
+  const SupportPage(this.socket, {super.key});
 
   @override
   ConsumerState<SupportPage> createState() => _SupportPageState();
@@ -85,7 +85,7 @@ class _SupportPageState extends ConsumerState<SupportPage> {
                   borderSide: BorderSide(color: Color(0xFF006970), width: 1.w),
                 ),
                 hint: Text(
-                  "Please Enter Subject",
+                  "Enter Subject",
                   style: GoogleFonts.inter(
                     fontSize: 14.sp,
                     fontWeight: FontWeight.w400,
@@ -118,7 +118,7 @@ class _SupportPageState extends ConsumerState<SupportPage> {
                   borderSide: BorderSide(color: Color(0xFF006970), width: 1.w),
                 ),
                 hint: Text(
-                  "Please Enter Description",
+                  "Enter Description",
                   style: GoogleFonts.inter(
                     fontSize: 14.sp,
                     fontWeight: FontWeight.w400,
@@ -232,10 +232,10 @@ class _SupportPageState extends ConsumerState<SupportPage> {
                         Navigator.push(
                           context,
                           CupertinoPageRoute(
-                            builder: (context) =>
-                                TicketDetailsPage(
-                                  widget.socket,
-                                    id: snap.data.list[index].id),
+                            builder: (context) => TicketDetailsPage(
+                              widget.socket,
+                              id: snap.data.list[index].id,
+                            ),
                           ),
                         );
                       },

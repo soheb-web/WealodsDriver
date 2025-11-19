@@ -178,7 +178,7 @@ class _AddVihiclePageState extends State<AddVihiclePage> {
         isLoading = false;
       });
     }
-  }*//*
+  }*/ /*
 
 
   Future<void> submitVehicle() async {
@@ -1461,7 +1461,6 @@ class _AddVihiclePageState extends State<AddVihiclePage> {
   }
 }*/
 
-
 /*
 
 
@@ -2072,7 +2071,6 @@ class _AddVihiclePageState extends State<AddVihiclePage> {
 }
 */
 
-
 import 'dart:convert';
 import 'dart:io';
 import 'package:flutter/cupertino.dart';
@@ -2090,19 +2088,20 @@ import '../data/model/VihicleResponseModel.dart';
 import '../data/model/driverProfileModel.dart';
 
 class AddVihiclePage extends StatefulWidget {
-
   final VehicleDetail? vehicleDetail;
   final Document? documentToReupload;
 
-  const AddVihiclePage({super.key, this.vehicleDetail, this.documentToReupload});
+  const AddVihiclePage({
+    super.key,
+    this.vehicleDetail,
+    this.documentToReupload,
+  });
 
   @override
   State<AddVihiclePage> createState() => _AddVihiclePageState();
-
 }
 
 class _AddVihiclePageState extends State<AddVihiclePage> {
-
   List<Datum> vehicleList = [];
   Datum? selectedVehicle;
   final numberPlateController = TextEditingController();
@@ -2113,17 +2112,26 @@ class _AddVihiclePageState extends State<AddVihiclePage> {
   final _picker = ImagePicker();
 
   Map<String, File?> documentImages = {
-    'POC': null, 'License': null, 'RC': null, 'Insurance': null, 'Permit': null, 'Other': null,
+    'POC': null,
+    'License': null,
+    'RC': null,
+    'Insurance': null,
+    'Permit': null,
+    'Other': null,
   };
 
   Map<String, bool> uploadStatus = {
-    'POC': false, 'License': false, 'RC': false, 'Insurance': false, 'Permit': false, 'Other': false,
+    'POC': false,
+    'License': false,
+    'RC': false,
+    'Insurance': false,
+    'Permit': false,
+    'Other': false,
   };
 
   late final bool isEditMode;
 
   late final bool isReuploadMode;
-
 
   @override
   void initState() {
@@ -2180,7 +2188,7 @@ class _AddVihiclePageState extends State<AddVihiclePage> {
 
     try {
       selectedVehicle = vehicleList.firstWhere(
-            (e) => e.id.toString() == targetId,
+        (e) => e.id.toString() == targetId,
       );
     } catch (_) {
       selectedVehicle = vehicleList.first;
@@ -2200,12 +2208,17 @@ class _AddVihiclePageState extends State<AddVihiclePage> {
       final body = await http.Response.fromStream(resp);
       final json = jsonDecode(body.body) as Map<String, dynamic>;
 
-      if (resp.statusCode == 200 && json['error'] == false && json['data']?['imageUrl'] != null) {
+      if (resp.statusCode == 200 &&
+          json['error'] == false &&
+          json['data']?['imageUrl'] != null) {
         return json['data']['imageUrl'] as String;
       }
       throw Exception('Upload failed');
     } catch (e) {
-      Fluttertoast.showToast(msg: "Upload error: $e", backgroundColor: Colors.red);
+      Fluttertoast.showToast(
+        msg: "Upload error: $e",
+        backgroundColor: Colors.red,
+      );
       return null;
     }
   }
@@ -2239,7 +2252,10 @@ class _AddVihiclePageState extends State<AddVihiclePage> {
   }
 
   Future<void> _pickFromGallery(String docType) async {
-    final picked = await _picker.pickImage(source: ImageSource.gallery, imageQuality: 80);
+    final picked = await _picker.pickImage(
+      source: ImageSource.gallery,
+      imageQuality: 80,
+    );
     if (picked != null) {
       setState(() => documentImages[docType] = File(picked.path));
     }
@@ -2251,7 +2267,10 @@ class _AddVihiclePageState extends State<AddVihiclePage> {
       Fluttertoast.showToast(msg: "Camera permission denied");
       return;
     }
-    final file = await _picker.pickImage(source: ImageSource.camera, imageQuality: 80);
+    final file = await _picker.pickImage(
+      source: ImageSource.camera,
+      imageQuality: 80,
+    );
     if (file != null) {
       setState(() => documentImages[docType] = File(file.path));
     }
@@ -2266,31 +2285,47 @@ class _AddVihiclePageState extends State<AddVihiclePage> {
         filled: true,
         fillColor: const Color.fromARGB(12, 255, 255, 255),
         contentPadding: EdgeInsets.symmetric(vertical: 15.h, horizontal: 20.w),
-        enabledBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(10.r), borderSide: const BorderSide(color: Colors.black)),
-        focusedBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(10.r), borderSide: const BorderSide(color: Colors.black)),
+        enabledBorder: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(10.r),
+          borderSide: const BorderSide(color: Colors.black),
+        ),
+        focusedBorder: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(10.r),
+          borderSide: const BorderSide(color: Colors.black),
+        ),
       ),
     );
   }
 
-  int? _parseInt(String input) => int.tryParse(input.replaceAll(RegExp(r'[^0-9]'), ''));
-  double? _parseDouble(String input) => double.tryParse(input.replaceAll(RegExp(r'[^0-9.]'), ''));
+  int? _parseInt(String input) =>
+      int.tryParse(input.replaceAll(RegExp(r'[^0-9]'), ''));
+  double? _parseDouble(String input) =>
+      double.tryParse(input.replaceAll(RegExp(r'[^0-9.]'), ''));
 
   void _showSnackBar(String message) {
     ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(content: Text(message), backgroundColor: message.contains('Error') ? Colors.red : Colors.green, duration: const Duration(seconds: 4)),
+      SnackBar(
+        content: Text(message),
+        backgroundColor: message.contains('Error') ? Colors.red : Colors.green,
+        duration: const Duration(seconds: 4),
+      ),
     );
   }
 
   Future<void> submitVehicle() async {
     // ... your existing validation & submit logic (unchanged)
     // Keep exactly as you had
-    if (selectedVehicle == null) return _showSnackBar('Please select a vehicle type');
+    if (selectedVehicle == null)
+      return _showSnackBar('Please select a vehicle type');
     final numberPlate = numberPlateController.text.trim();
     final model = modelController.text.trim();
     final weightText = capacityWeightController.text.trim();
     final volumeText = capacityVolumeController.text.trim();
 
-    if (numberPlate.isEmpty || model.isEmpty || weightText.isEmpty || volumeText.isEmpty) {
+    if (numberPlate.isEmpty ||
+        model.isEmpty ||
+        weightText.isEmpty ||
+        volumeText.isEmpty) {
       return _showSnackBar('Please fill all fields');
     }
 
@@ -2303,7 +2338,9 @@ class _AddVihiclePageState extends State<AddVihiclePage> {
     List<String> requiredDocs = ['POC', 'License', 'RC', 'Insurance', 'Other'];
     for (String doc in requiredDocs) {
       if (documentImages[doc] == null) {
-        return _showSnackBar('Please upload ${doc == 'Other' ? 'Vehicle Photo' : doc}');
+        return _showSnackBar(
+          'Please upload ${doc == 'Other' ? 'Vehicle Photo' : doc}',
+        );
       }
     }
 
@@ -2364,7 +2401,7 @@ class _AddVihiclePageState extends State<AddVihiclePage> {
       }).toList();
 
       final body = UpdateVihicleBodyModel(
-        vehicleId: widget.vehicleDetail!.id??"",
+        vehicleId: widget.vehicleDetail!.id ?? "",
         numberPlate: widget.vehicleDetail!.numberPlate!,
         model: widget.vehicleDetail!.model!,
         capacityWeight: widget.vehicleDetail!.capacityWeight!,
@@ -2391,8 +2428,11 @@ class _AddVihiclePageState extends State<AddVihiclePage> {
   }
 
   Widget _buildDocumentUpload(String docType) {
-    final isThisDoc = isReuploadMode ? widget.documentToReupload?.type == docType : true;
-    final isRejected = isReuploadMode && widget.documentToReupload?.type == docType;
+    final isThisDoc = isReuploadMode
+        ? widget.documentToReupload?.type == docType
+        : true;
+    final isRejected =
+        isReuploadMode && widget.documentToReupload?.type == docType;
 
     return Column(
       children: [
@@ -2404,9 +2444,13 @@ class _AddVihiclePageState extends State<AddVihiclePage> {
             child: Container(
               height: 80.h,
               decoration: BoxDecoration(
-                color: isRejected ? Colors.red.shade50 : const Color(0xFFF0F5F5),
+                color: isRejected
+                    ? Colors.red.shade50
+                    : const Color(0xFFF0F5F5),
                 borderRadius: BorderRadius.circular(20.r),
-                border: isRejected ? Border.all(color: Colors.red, width: 2) : null,
+                border: isRejected
+                    ? Border.all(color: Colors.red, width: 2)
+                    : null,
               ),
               padding: EdgeInsets.symmetric(horizontal: 12.w, vertical: 8.h),
               child: Row(
@@ -2418,16 +2462,30 @@ class _AddVihiclePageState extends State<AddVihiclePage> {
                       height: 60.h,
                       color: Colors.grey[200],
                       child: documentImages[docType] != null
-                          ? Image.file(documentImages[docType]!, fit: BoxFit.cover)
+                          ? Image.file(
+                              documentImages[docType]!,
+                              fit: BoxFit.cover,
+                            )
                           : uploadStatus[docType] == true
-                          ? const Icon(Icons.check_circle, color: Colors.green, size: 40)
+                          ? const Icon(
+                              Icons.check_circle,
+                              color: Colors.green,
+                              size: 40,
+                            )
                           : Column(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: [
-                          Icon(Icons.image, size: 30.sp, color: Colors.grey),
-                          Text("No Image", style: TextStyle(fontSize: 10.sp)),
-                        ],
-                      ),
+                              mainAxisAlignment: MainAxisAlignment.center,
+                              children: [
+                                Icon(
+                                  Icons.image,
+                                  size: 30.sp,
+                                  color: Colors.grey,
+                                ),
+                                Text(
+                                  "No Image",
+                                  style: TextStyle(fontSize: 10.sp),
+                                ),
+                              ],
+                            ),
                     ),
                   ),
                   SizedBox(width: 12.w),
@@ -2437,13 +2495,29 @@ class _AddVihiclePageState extends State<AddVihiclePage> {
                       mainAxisAlignment: MainAxisAlignment.center,
                       children: [
                         Text(
-                          docType == 'RC' ? 'Registration Certificate' : docType == 'Other' ? 'Vehicle Photo' : docType,
-                          style: GoogleFonts.inter(fontSize: 13.sp, fontWeight: FontWeight.w600),
+                          docType == 'RC'
+                              ? 'Registration Certificate'
+                              : docType == 'Other'
+                              ? 'Vehicle Photo'
+                              : docType,
+                          style: GoogleFonts.inter(
+                            fontSize: 13.sp,
+                            fontWeight: FontWeight.w600,
+                          ),
                         ),
                         if (isRejected)
-                          Text("Rejected - Tap to re-upload", style: TextStyle(color: Colors.red, fontSize: 12.sp))
+                          Text(
+                            "Rejected - Tap to re-upload",
+                            style: TextStyle(
+                              color: Colors.red,
+                              fontSize: 12.sp,
+                            ),
+                          )
                         else if (uploadStatus[docType] == true)
-                          Text("Uploaded", style: TextStyle(color: Colors.green)),
+                          Text(
+                            "Uploaded",
+                            style: TextStyle(color: Colors.green),
+                          ),
                       ],
                     ),
                   ),
@@ -2457,8 +2531,6 @@ class _AddVihiclePageState extends State<AddVihiclePage> {
     );
   }
 
-
-
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -2467,7 +2539,10 @@ class _AddVihiclePageState extends State<AddVihiclePage> {
         backgroundColor: Colors.white,
         leading: Padding(
           padding: EdgeInsets.only(left: 20.w),
-          child: IconButton(onPressed: () => Navigator.pop(context), icon: Icon(Icons.arrow_back_ios, size: 20.sp)),
+          child: IconButton(
+            onPressed: () => Navigator.pop(context),
+            icon: Icon(Icons.arrow_back_ios, size: 20.sp),
+          ),
         ),
         title: Text(
           isReuploadMode
@@ -2475,7 +2550,10 @@ class _AddVihiclePageState extends State<AddVihiclePage> {
               : isEditMode
               ? "Edit Vehicle"
               : "Add Vehicle",
-          style: GoogleFonts.inter(fontSize: 15.sp, fontWeight: FontWeight.w400),
+          style: GoogleFonts.inter(
+            fontSize: 15.sp,
+            fontWeight: FontWeight.w400,
+          ),
         ),
       ),
       body: Padding(
@@ -2490,15 +2568,34 @@ class _AddVihiclePageState extends State<AddVihiclePage> {
                     children: [
                       Icon(Icons.error_outline, size: 60.sp, color: Colors.red),
                       SizedBox(height: 16.h),
-                      Text("Document Rejected", style: GoogleFonts.inter(fontSize: 18.sp, fontWeight: FontWeight.w700, color: Colors.red)),
+                      Text(
+                        "Document Rejected",
+                        style: GoogleFonts.inter(
+                          fontSize: 18.sp,
+                          fontWeight: FontWeight.w700,
+                          color: Colors.red,
+                        ),
+                      ),
                       SizedBox(height: 8.h),
-                      Text(widget.documentToReupload!.type!, style: GoogleFonts.inter(fontSize: 16.sp)),
+                      Text(
+                        widget.documentToReupload!.type!,
+                        style: GoogleFonts.inter(fontSize: 16.sp),
+                      ),
                       if (widget.documentToReupload!.remarks != null) ...[
                         SizedBox(height: 12.h),
                         Container(
                           padding: EdgeInsets.all(12.w),
-                          decoration: BoxDecoration(color: Colors.red.shade50, borderRadius: BorderRadius.circular(10.r)),
-                          child: Text("Reason: ${widget.documentToReupload!.remarks}", style: TextStyle(color: Colors.red, fontSize: 14.sp)),
+                          decoration: BoxDecoration(
+                            color: Colors.red.shade50,
+                            borderRadius: BorderRadius.circular(10.r),
+                          ),
+                          child: Text(
+                            "Reason: ${widget.documentToReupload!.remarks}",
+                            style: TextStyle(
+                              color: Colors.red,
+                              fontSize: 14.sp,
+                            ),
+                          ),
                         ),
                       ],
                       SizedBox(height: 30.h),
@@ -2511,45 +2608,93 @@ class _AddVihiclePageState extends State<AddVihiclePage> {
                 vehicleList.isEmpty
                     ? const Center(child: CircularProgressIndicator())
                     : Container(
+                        decoration: const BoxDecoration(
+                          color: Color(0xffF3F7F5),
+                        ),
+                        child: DropdownButtonFormField<Datum>(
+                          value: selectedVehicle,
+                          items: vehicleList
+                              .map(
+                                (v) => DropdownMenuItem(
+                                  value: v,
+                                  child: Text(v.name ?? "Unknown"),
+                                ),
+                              )
+                              .toList(),
+                          onChanged: (v) => setState(() => selectedVehicle = v),
+                          decoration: InputDecoration(
+                            hintText: "Select Vehicle Type",
+                            border: OutlineInputBorder(
+                              borderRadius: BorderRadius.circular(10.r),
+                              borderSide: const BorderSide(color: Colors.black),
+                            ),
+                            contentPadding: EdgeInsets.symmetric(
+                              vertical: 15.h,
+                              horizontal: 20.w,
+                            ),
+                          ),
+                        ),
+                      ),
+                SizedBox(height: 20.h),
+                Container(
                   decoration: const BoxDecoration(color: Color(0xffF3F7F5)),
-                  child: DropdownButtonFormField<Datum>(
-                    value: selectedVehicle,
-                    items: vehicleList.map((v) => DropdownMenuItem(value: v, child: Text(v.name ?? "Unknown"))).toList(),
-                    onChanged: (v) => setState(() => selectedVehicle = v),
-                    decoration: InputDecoration(
-                      hintText: "Select Vehicle Type",
-                      border: OutlineInputBorder(borderRadius: BorderRadius.circular(10.r), borderSide: const BorderSide(color: Colors.black)),
-                      contentPadding: EdgeInsets.symmetric(vertical: 15.h, horizontal: 20.w),
-                    ),
+                  child: buildTextField("Number Plate", numberPlateController),
+                ),
+                SizedBox(height: 20.h),
+                Container(
+                  decoration: const BoxDecoration(color: Color(0xffF3F7F5)),
+                  child: buildTextField("Vehicle Model", modelController),
+                ),
+                SizedBox(height: 20.h),
+                Container(
+                  decoration: const BoxDecoration(color: Color(0xffF3F7F5)),
+                  child: buildTextField(
+                    "Max Load Capacity(Kg)",
+                    capacityWeightController,
                   ),
                 ),
                 SizedBox(height: 20.h),
-                Container(decoration: const BoxDecoration(color: Color(0xffF3F7F5)), child: buildTextField("Number Plate", numberPlateController)),
-                SizedBox(height: 20.h),
-                Container(decoration: const BoxDecoration(color: Color(0xffF3F7F5)), child: buildTextField("Model", modelController)),
-                SizedBox(height: 20.h),
-                Container(decoration: const BoxDecoration(color: Color(0xffF3F7F5)), child: buildTextField("Capacity Weight", capacityWeightController)),
-                SizedBox(height: 20.h),
-                Container(decoration: const BoxDecoration(color: Color(0xffF3F7F5)), child: buildTextField("Capacity Volume", capacityVolumeController)),
+                Container(
+                  decoration: const BoxDecoration(color: Color(0xffF3F7F5)),
+                  child: buildTextField(
+                    "Capacity Volume",
+                    capacityVolumeController,
+                  ),
+                ),
                 SizedBox(height: 30.h),
-                ...['POC', 'License', 'RC', 'Insurance', 'Permit', 'Other'].map(_buildDocumentUpload).toList(),
+                ...[
+                  'PUC',
+                  'License',
+                  'RC',
+                  'Insurance',
+                  'Permit',
+                  'Other',
+                ].map(_buildDocumentUpload).toList(),
               ],
 
               SizedBox(height: 40.h),
               ElevatedButton(
-                style: ElevatedButton.styleFrom(minimumSize: Size(double.infinity, 48.h), backgroundColor: const Color(0xff006970)),
+                style: ElevatedButton.styleFrom(
+                  minimumSize: Size(double.infinity, 48.h),
+                  backgroundColor: const Color(0xff006970),
+                ),
                 onPressed: isLoading ? null : _submit,
                 child: isLoading
                     ? const CircularProgressIndicator(color: Colors.white)
-                    : Text(isReuploadMode ? "Re-upload Document" : "Submit", style: const TextStyle(color: Colors.white, fontSize: 16)),
+                    : Text(
+                        isReuploadMode ? "Re-upload Document" : "Submit",
+                        style: const TextStyle(
+                          color: Colors.white,
+                          fontSize: 16,
+                        ),
+                      ),
               ),
+
+              SizedBox(height: 30.h),
             ],
           ),
         ),
       ),
     );
   }
-
-
-
 }

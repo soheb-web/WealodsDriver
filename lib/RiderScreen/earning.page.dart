@@ -120,7 +120,7 @@ class _EarningPageState extends State<EarningPage> {
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Text(
-                        "Current Balance (₦)",
+                        "Current Balance (₹)",
                         style: GoogleFonts.inter(
                           fontSize: 13.sp,
                           fontWeight: FontWeight.w400,

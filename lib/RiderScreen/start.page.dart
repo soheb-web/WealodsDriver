@@ -1,6 +1,3 @@
-
-
-
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:gif/gif.dart';
@@ -14,7 +11,6 @@ class SplashScreen extends StatefulWidget {
 
 class _SplashScreenState extends State<SplashScreen>
     with TickerProviderStateMixin {
-
   late GifController controller;
 
   @override
@@ -25,13 +21,14 @@ class _SplashScreenState extends State<SplashScreen>
       Navigator.pushAndRemoveUntil(
         context,
         MaterialPageRoute(builder: (context) => OnbordingPage()),
-            (route) => false,
+        (route) => false,
       );
-    // // 3 सेकंड बाद home screen पर जाएं
-    // Future.delayed(Duration(seconds: 3), () {
-    //   Navigator.pushReplacementNamed(context, '/home');
-    // });
-  });}
+      // // 3 सेकंड बाद home screen पर जाएं
+      // Future.delayed(Duration(seconds: 3), () {
+      //   Navigator.pushReplacementNamed(context, '/home');
+      // });
+    });
+  }
 
   @override
   void dispose() {
@@ -52,12 +49,10 @@ class _SplashScreenState extends State<SplashScreen>
               controller: controller,
               autostart: Autostart.loop,
               fit: BoxFit.contain,
-              width: 300,  // अपनी जरूरत के अनुसार size
+              width: 300, // अपनी जरूरत के अनुसार size
               height: 300,
             ),
           ),
-
-
 
           // Text(
           //   "Splash",
@@ -67,7 +62,6 @@ class _SplashScreenState extends State<SplashScreen>
           //     color:Colors.black ,
           //   ),
           // ),
-
         ],
       ),
     );

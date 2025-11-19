@@ -50,16 +50,16 @@ class _EditprofilepageState extends State<Editprofilepage> {
   late TextEditingController _firstNameCtrl;
   late TextEditingController _lastNameCtrl;
 
-  File? _pickedImage;               // new image selected by user
-  String? _originalImageUrl;        // image that came from API
-  bool _isLoading = true;           // show spinner while fetching
+  File? _pickedImage; // new image selected by user
+  String? _originalImageUrl; // image that came from API
+  bool _isLoading = true; // show spinner while fetching
   String? _errorMessage;
 
   // ------------------------------------------------------------------
   // Replace with your real endpoint & auth header
   // ------------------------------------------------------------------
   static const String _profileUrl = 'https://your-api.com/driver/profile';
-  static const String _updateUrl  = 'https://your-api.com/driver/profile';
+  static const String _updateUrl = 'https://your-api.com/driver/profile';
   static const Map<String, String> _headers = {
     'Authorization': 'Bearer YOUR_TOKEN_HERE',
     'Content-Type': 'application/json',
@@ -72,7 +72,7 @@ class _EditprofilepageState extends State<Editprofilepage> {
   void initState() {
     super.initState();
     _firstNameCtrl = TextEditingController();
-    _lastNameCtrl  = TextEditingController();
+    _lastNameCtrl = TextEditingController();
     _fetchProfile();
   }
 
@@ -88,15 +88,18 @@ class _EditprofilepageState extends State<Editprofilepage> {
   // ------------------------------------------------------------------
   Future<void> _fetchProfile() async {
     try {
-      final response = await http.get(Uri.parse(_profileUrl), headers: _headers);
+      final response = await http.get(
+        Uri.parse(_profileUrl),
+        headers: _headers,
+      );
       if (response.statusCode == 200) {
         final model = driverProfileModelFromJson(response.body);
         if (model.error == false && model.data != null) {
           final data = model.data!;
           setState(() {
             _firstNameCtrl.text = data.firstName ?? '';
-            _lastNameCtrl.text  = data.lastName ?? '';
-            _originalImageUrl   = data.image;
+            _lastNameCtrl.text = data.lastName ?? '';
+            _originalImageUrl = data.image;
             _isLoading = false;
           });
         } else {
@@ -129,7 +132,7 @@ class _EditprofilepageState extends State<Editprofilepage> {
   // ------------------------------------------------------------------
   Future<void> _updateProfile() async {
     final firstName = _firstNameCtrl.text.trim();
-    final lastName  = _lastNameCtrl.text.trim();
+    final lastName = _lastNameCtrl.text.trim();
 
     if (firstName.isEmpty || lastName.isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
@@ -153,7 +156,9 @@ class _EditprofilepageState extends State<Editprofilepage> {
         var request = http.MultipartRequest('PUT', Uri.parse(_updateUrl))
           ..headers.addAll(_headers)
           ..fields.addAll(payload.map((k, v) => MapEntry(k, v.toString())))
-          ..files.add(await http.MultipartFile.fromPath('image', _pickedImage!.path));
+          ..files.add(
+            await http.MultipartFile.fromPath('image', _pickedImage!.path),
+          );
 
         final streamed = await request.send();
         response = await http.Response.fromStream(streamed);
@@ -176,9 +181,9 @@ class _EditprofilepageState extends State<Editprofilepage> {
             _originalImageUrl = data.image;
             _pickedImage = null;
           });
-          ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(content: Text('Profile updated!')),
-          );
+          ScaffoldMessenger.of(
+            context,
+          ).showSnackBar(const SnackBar(content: Text('Profile updated!')));
         } else {
           throw Exception(model.message ?? 'Update failed');
         }
@@ -186,9 +191,9 @@ class _EditprofilepageState extends State<Editprofilepage> {
         throw Exception('HTTP ${response.statusCode}');
       }
     } catch (e) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Error: $e')),
-      );
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text('Error: $e')));
     } finally {
       setState(() => _isLoading = false);
     }
@@ -205,17 +210,17 @@ class _EditprofilepageState extends State<Editprofilepage> {
         actions: [
           _isLoading
               ? const Padding(
-            padding: EdgeInsets.all(16.0),
-            child: SizedBox(
-              width: 20,
-              height: 20,
-              child: CircularProgressIndicator(strokeWidth: 2),
-            ),
-          )
+                  padding: EdgeInsets.all(16.0),
+                  child: SizedBox(
+                    width: 20,
+                    height: 20,
+                    child: CircularProgressIndicator(strokeWidth: 2),
+                  ),
+                )
               : IconButton(
-            icon: const Icon(Icons.save),
-            onPressed: _updateProfile,
-          ),
+                  icon: const Icon(Icons.save),
+                  onPressed: _updateProfile,
+                ),
         ],
       ),
       body: _isLoading
@@ -223,72 +228,75 @@ class _EditprofilepageState extends State<Editprofilepage> {
           : _errorMessage != null
           ? Center(child: Text('Error: $_errorMessage'))
           : SingleChildScrollView(
-        padding: const EdgeInsets.all(20),
-        child: Column(
-          children: [
-            // ------------------- PROFILE IMAGE -------------------
-            GestureDetector(
-              onTap: _pickImage,
-              child: CircleAvatar(
-                radius: 60,
-                backgroundImage: _pickedImage != null
-                    ? FileImage(_pickedImage!)
-                    : _originalImageUrl != null
-                    ? CachedNetworkImageProvider(_originalImageUrl!)
-                    : const AssetImage('assets/placeholder.png')
-                as ImageProvider,
-                child: _pickedImage == null && _originalImageUrl == null
-                    ? const Icon(Icons.add_a_photo, size: 40)
-                    : null,
-              ),
-            ),
-            const SizedBox(height: 8),
-            const Text('Tap to change photo',
-                style: TextStyle(color: Colors.grey)),
-
-            const SizedBox(height: 30),
-
-            // ------------------- FIRST NAME -------------------
-            TextField(
-              controller: _firstNameCtrl,
-              decoration: const InputDecoration(
-                labelText: 'First Name',
-                border: OutlineInputBorder(),
-              ),
-            ),
-            const SizedBox(height: 16),
-
-            // ------------------- LAST NAME -------------------
-            TextField(
-              controller: _lastNameCtrl,
-              decoration: const InputDecoration(
-                labelText: 'Last Name',
-                border: OutlineInputBorder(),
-              ),
-            ),
-            const SizedBox(height: 30),
-
-            // ------------------- UPDATE BUTTON -------------------
-            SizedBox(
-              width: double.infinity,
-              child: ElevatedButton(
-                onPressed: _isLoading ? null : _updateProfile,
-                child: _isLoading
-                    ? const SizedBox(
-                  height: 20,
-                  width: 20,
-                  child: CircularProgressIndicator(
-                    strokeWidth: 2,
-                    valueColor:
-                    AlwaysStoppedAnimation<Color>(Colors.white),
+              padding: const EdgeInsets.all(20),
+              child: Column(
+                children: [
+                  // ------------------- PROFILE IMAGE -------------------
+                  GestureDetector(
+                    onTap: _pickImage,
+                    child: CircleAvatar(
+                      radius: 60,
+                      backgroundImage: _pickedImage != null
+                          ? FileImage(_pickedImage!)
+                          : _originalImageUrl != null
+                          ? CachedNetworkImageProvider(_originalImageUrl!)
+                          : const AssetImage('assets/placeholder.png')
+                                as ImageProvider,
+                      child: _pickedImage == null && _originalImageUrl == null
+                          ? const Icon(Icons.add_a_photo, size: 40)
+                          : null,
+                    ),
                   ),
-                )
-                    : const Text('Update Profile'),
+                  const SizedBox(height: 8),
+                  const Text(
+                    'Tap to change photo',
+                    style: TextStyle(color: Colors.grey),
+                  ),
+
+                  const SizedBox(height: 30),
+
+                  // ------------------- FIRST NAME -------------------
+                  TextField(
+                    controller: _firstNameCtrl,
+                    decoration: const InputDecoration(
+                      helperText: 'First Name',
+                      border: OutlineInputBorder(),
+                    ),
+                  ),
+                  const SizedBox(height: 16),
+
+                  // ------------------- LAST NAME -------------------
+                  TextField(
+                    controller: _lastNameCtrl,
+                    decoration: const InputDecoration(
+                      labelText: 'Last Name',
+                      border: OutlineInputBorder(),
+                    ),
+                  ),
+                  const SizedBox(height: 30),
+
+                  // ------------------- UPDATE BUTTON -------------------
+                  SizedBox(
+                    width: double.infinity,
+                    child: ElevatedButton(
+                      onPressed: _isLoading ? null : _updateProfile,
+                      child: _isLoading
+                          ? const SizedBox(
+                              height: 20,
+                              width: 20,
+                              child: CircularProgressIndicator(
+                                strokeWidth: 2,
+                                valueColor: AlwaysStoppedAnimation<Color>(
+                                  Colors.white,
+                                ),
+                              ),
+                            )
+                          : const Text('Update Profile'),
+                    ),
+                  ),
+                ],
               ),
             ),
-          ],
-        ),
-      ),
     );
   }
 }
