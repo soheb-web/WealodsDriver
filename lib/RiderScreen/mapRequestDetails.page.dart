@@ -1560,6 +1560,7 @@
 
 
 import 'dart:developer';
+import 'dart:ui' as ui;
 import 'package:socket_io_client/socket_io_client.dart' as IO;
 import 'package:delivery_rider_app/RiderScreen/home.page.dart';
 import 'package:delivery_rider_app/config/utils/pretty.dio.dart';
@@ -1626,12 +1627,20 @@ class _MapRequestDetailsPageState extends State<MapRequestDetailsPage> {
   DeliveryResponseModel? deliveryData;
   bool isLoadingData = true;
 
+  late BitmapDescriptor _number1Icon;
+  late BitmapDescriptor _number2Icon;
+  late BitmapDescriptor driverIcon;
   @override
   void initState() {
     super.initState();
     _getCurrentLocation();
 
     _fetchDeliveryData();
+
+    _createNumberIcons();
+    loadSimpleDriverIcon().then((_) {
+      if (mounted) setState(() {});
+    });
   }
   Future<void> _fetchDeliveryData() async {
     try {
@@ -1684,29 +1693,35 @@ class _MapRequestDetailsPageState extends State<MapRequestDetailsPage> {
       _addMarkersAndRoute();
     }
   }
+
   void _addMarkersAndRoute() {
     _markers.clear();
+
+
     if (_currentLatLng != null) {
       _markers.add(Marker(
         markerId: const MarkerId('current'),
         position: _currentLatLng!,
-        icon: BitmapDescriptor.defaultMarkerWithHue(BitmapDescriptor.hueGreen),
+        icon: driverIcon,
+        // BitmapDescriptor.defaultMarkerWithHue(BitmapDescriptor.hueGreen),
         infoWindow: const InfoWindow(title: "You are here"),
       ));
     }
+
 
     // Pickup
     if (widget.pickupLat != null && widget.pickupLong != null) {
       _markers.add(Marker(
         markerId: const MarkerId('pickup'),
         position: LatLng(widget.pickupLat!, widget.pickupLong!),
-        icon: BitmapDescriptor.defaultMarkerWithHue(BitmapDescriptor.hueRed),
+        icon: BitmapDescriptor.defaultMarkerWithHue(BitmapDescriptor.hueOrange),
         infoWindow: InfoWindow(title: "Pickup", snippet: widget.deliveryData.pickup?.name),
       ));
     }
 
     // Multiple Drop Points
     for (int i = 0; i < widget.dropLats.length; i++) {
+      BitmapDescriptor icon;
       final lat = widget.dropLats[i];
       final lon = widget.dropLons[i];
       final name = widget.dropNames[i];
@@ -1714,8 +1729,23 @@ class _MapRequestDetailsPageState extends State<MapRequestDetailsPage> {
       _markers.add(Marker(
         markerId: MarkerId('drop_$i'),
         position: LatLng(lat, lon),
-        icon: BitmapDescriptor.defaultMarkerWithHue(
-            i == widget.dropLats.length - 1 ? BitmapDescriptor.hueBlue : BitmapDescriptor.hueOrange),
+
+
+        icon:
+        i==0?
+
+        icon= _number1Icon
+
+            :
+
+        i==1?
+
+        icon=_number2Icon:
+
+        BitmapDescriptor.defaultMarkerWithHue(BitmapDescriptor.hueRed),
+
+        // icon: BitmapDescriptor.defaultMarkerWithHue(
+        //     i == widget.dropLats.length - 1 ? BitmapDescriptor.hueBlue : BitmapDescriptor.hueOrange),
         infoWindow: InfoWindow(title: "Drop ${i + 1}", snippet: name),
       ));
     }
@@ -1988,6 +2018,78 @@ class _MapRequestDetailsPageState extends State<MapRequestDetailsPage> {
     if (await canLaunchUrl(uri)) {
       await launchUrl(uri);
     }
+  }
+
+
+
+  Future<void> _createNumberIcons() async {
+    _number1Icon = await _createNumberIcon("1", Colors.red);
+    _number2Icon = await _createNumberIcon("2", Colors.orange);
+
+  }
+
+  Future<BitmapDescriptor> _createNumberIcon(String number, Color color) async {
+    final size = 80.0;
+    final recorder = ui.PictureRecorder();
+    final canvas = Canvas(recorder);
+
+    canvas.drawCircle(Offset(size / 2, size / 2), size / 2, Paint()..color = color);
+    canvas.drawCircle(Offset(size / 2, size / 2), size / 2 - 8, Paint()..color = Colors.white);
+
+    final textPainter = TextPainter(textDirection: ui.TextDirection.ltr);
+    textPainter.text = TextSpan(
+      text: number,
+      style: const TextStyle(color: Colors.black, fontSize: 40, fontWeight: FontWeight.bold),
+    );
+    textPainter.layout();
+    textPainter.paint(canvas, Offset((size - textPainter.width) / 2, (size - textPainter.height) / 2));
+
+    final picture = recorder.endRecording();
+    final img = await picture.toImage(size.toInt(), size.toInt());
+    final byteData = await img.toByteData(format: ui.ImageByteFormat.png);
+    return BitmapDescriptor.fromBytes(byteData!.buffer.asUint8List());
+  }
+
+  Future<void> loadSimpleDriverIcon() async {
+    final recorder = ui.PictureRecorder();
+    final canvas = Canvas(recorder);
+
+    const size = 100.0;
+
+    // White circle with black border
+    // canvas.drawCircle(
+    //   const Offset(size / 2, size / 2),
+    //   size / 2,
+    //   Paint()..color = Colors.white,
+    // );
+    // canvas.drawCircle(
+    //   const Offset(size / 2, size / 2),
+    //   size / 2,
+    //   Paint()
+    //     ..color = Colors.black
+    //     ..style = PaintingStyle.stroke
+    //     ..strokeWidth = 10,
+    // );
+
+    // Inner solid green circle (driver hai na!)
+    canvas.drawCircle(
+      const Offset(size / 2, size / 2),
+      size / 2 - 18,
+      Paint()..color = const Color(0xFF00C853), // Bright Green
+    );
+
+    // Chhota white dot in center (jaise real apps mein hota hai)
+    canvas.drawCircle(
+      const Offset(size / 2, size / 2),
+      12,
+      Paint()..color = Colors.white,
+    );
+
+    final picture = recorder.endRecording();
+    final img = await picture.toImage(size.toInt(), size.toInt());
+    final pngBytes = await img.toByteData(format: ui.ImageByteFormat.png);
+
+    driverIcon = BitmapDescriptor.fromBytes(pngBytes!.buffer.asUint8List());
   }
 
   @override

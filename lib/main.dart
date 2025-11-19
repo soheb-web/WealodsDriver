@@ -178,6 +178,7 @@ class MyApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
 
+
     getToken();
     var box = Hive.box("userdata");
     var PrintToken = box.get("token");
@@ -235,6 +236,8 @@ class MyApp extends StatelessWidget {
         },
       ),
     );
+
+
   }
 
   Future<String?> _getToken() async {

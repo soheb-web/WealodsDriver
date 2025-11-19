@@ -3069,8 +3069,8 @@ class _HomePageState extends State<HomePage>
   }
 
   void _connectSocket() {
-    // const socketUrl = 'http://192.168.1.43:4567';
-    const socketUrl = 'https://weloads.com';
+    const socketUrl = 'http://192.168.1.43:4567';
+    // const socketUrl = 'https://weloads.com';
     _disconnectSocket();
     socket = IO.io(socketUrl, <String, dynamic>{
       'transports': ['websocket'],

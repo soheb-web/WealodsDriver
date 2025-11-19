@@ -743,6 +743,8 @@ import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'dart:convert';
 import 'package:http/http.dart' as http;
 import 'package:url_launcher/url_launcher.dart';
+import '../config/network/api.state.dart';
+import '../config/utils/pretty.dio.dart';
 import '../data/model/DeliveryResponseModel.dart';
 import 'package:socket_io_client/socket_io_client.dart' as IO;
 import 'home.page.dart';
@@ -779,7 +781,7 @@ class _MapLiveScreenState extends State<MapLiveScreen> {
   final Set<Marker> _markers = {};
   final Set<Polyline> _polylines = {};
   List<LatLng> _routePoints = [];
-
+  LatLng? _driverLatLng;
   String? toPickupDistance;
   String? toPickupDuration;
   List<String> dropDistances = [];
@@ -790,23 +792,96 @@ class _MapLiveScreenState extends State<MapLiveScreen> {
   late BitmapDescriptor _number2Icon;
   late IO.Socket _socket;
   late BitmapDescriptor driverIcon;
+  String? error;
+
+  DeliveryResponseModel? deliveryData;
+  bool isLoadingData = true;
   @override
   void initState() {
     super.initState();
-    _socket = widget.socket!;
-    _emitDriverPicked();
     _getCurrentLocation();
+    _socket = widget.socket!;
+    _fetchDeliveryData();
+    _emitDriverPicked();
+
     _createNumberIcons();
     loadSimpleDriverIcon().then((_) {
       if (mounted) setState(() {});
     });
   }
 
-  void _emitDriverPicked() {
+
+
+  Future<void> _fetchDeliveryData() async {
+    try {
+      setState(() {
+        isLoadingData = true;
+        error = null;
+      });
+      final dio = await callDio();
+      final service = APIStateNetwork(dio);
+      final response = await service.getDeliveryById(
+        widget.deliveryData!.id ?? "",
+      );
+      if (mounted) {
+        setState(() {
+          deliveryData = response;
+          isLoadingData = false;
+        });
+      }
+    } catch (e) {
+      if (mounted) {
+        setState(() {
+          error = e.toString();
+          isLoadingData = false;
+        });
+      }
+    }
+  }
+
+  void _emitDriverPicked() async{
+   await _fetchDeliveryData();
     final payload = {"deliveryId": widget.deliveryData.id, "status": "picked"};
     if (_socket.connected) {
       _socket.emit("delivery:status_update", payload);
       log("Emitted → Driver Picked: $payload");
+    }
+
+    _socket.emitWithAck(
+      "driver:get_location",
+      { "driverId": deliveryData!.data!.deliveryBoy },
+      ack: (data) {
+        print("Driver Location Response: $data");
+
+        // data mostly Map ya List mein aata hai, safe check karo
+        if (data is Map<String, dynamic>) {
+          _handleDriverLocationResponse(data);
+        } else if (data is List && data.isNotEmpty) {
+          // Agar list mein aaya ho (kabhi kabhi aisa hota hai)
+          _handleDriverLocationResponse(data[0]);
+        }
+      },
+    );
+
+  }
+
+
+
+// Socket se jo response aaya usko yahan use karo
+  void _handleDriverLocationResponse(Map<String, dynamic> response) {
+    if (response["success"] == true) {
+      double lat = double.parse(response["lat"].toString());
+      double lon = double.parse(response["lon"].toString());
+      _driverLatLng = LatLng(lat, lon);
+      _addMarkersAndRoute();
+      print("Driver Location Updated: $_driverLatLng");
+      // // Agar map pe marker move karna hai to yahan call karo
+      // _moveDriverMarker(_driverLatLng!);
+      // UI update ke liye (if needed)
+      setState(() {});
+    } else {
+      print("Driver location failed or not available");
+      _driverLatLng = null;
     }
   }
 
@@ -864,7 +939,6 @@ class _MapLiveScreenState extends State<MapLiveScreen> {
   Future<void> loadSimpleDriverIcon() async {
     final recorder = ui.PictureRecorder();
     final canvas = Canvas(recorder);
-
     const size = 100.0;
 
     // White circle with black border
@@ -883,6 +957,7 @@ class _MapLiveScreenState extends State<MapLiveScreen> {
     // );
 
     // Inner solid green circle (driver hai na!)
+
     canvas.drawCircle(
       const Offset(size / 2, size / 2),
       size / 2 - 18,
@@ -896,21 +971,24 @@ class _MapLiveScreenState extends State<MapLiveScreen> {
       Paint()..color = Colors.white,
     );
 
+
     final picture = recorder.endRecording();
     final img = await picture.toImage(size.toInt(), size.toInt());
     final pngBytes = await img.toByteData(format: ui.ImageByteFormat.png);
 
     driverIcon = BitmapDescriptor.fromBytes(pngBytes!.buffer.asUint8List());
+
   }
 
 
   void _addMarkersAndRoute() {
     _markers.clear();
     // Current Location
-    if (_currentLatLng != null) {
+
+    if (_driverLatLng != null) {
       _markers.add(Marker(
         markerId: const MarkerId('current'),
-        position: _currentLatLng!,
+        position: _driverLatLng!,
         icon: driverIcon,
         infoWindow: const InfoWindow(title: "You are here"),
       ));
@@ -1144,6 +1222,7 @@ class _MapLiveScreenState extends State<MapLiveScreen> {
             // Bottom Card
 
 
+
             Positioned(
               bottom: 20.h,
               left: 16.w,
@@ -1190,6 +1269,9 @@ class _MapLiveScreenState extends State<MapLiveScreen> {
                 ),
               ),
             ),
+
+
+
           ],
         ),
       ),
