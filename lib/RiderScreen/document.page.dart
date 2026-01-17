@@ -107,7 +107,7 @@ class _DocumentPageState extends State<DocumentPage> {
     try {
       if (!await image.exists()) throw Exception('Image file does not exist at path: ${image.path}');
 
-      var request = http.MultipartRequest('POST', Uri.parse('https://weloads.com/api/v1/uploadImage'));
+      var request = http.MultipartRequest('POST', Uri.parse('https://backend.weloads.live/api/v1/uploadImage'));
       request.files.add(await http.MultipartFile.fromPath('file', image.path, filename: 'profile.jpg'));
 
       final response = await request.send();
@@ -390,7 +390,7 @@ class _DocumentPageState extends State<DocumentPage> {
     }
   }
 
-  // Upload image to https://weloads.com/api/v1/uploadImage
+  // Upload image to https://backend.weloads.live/api/v1/uploadImage
   Future<String?> uploadImage(File image) async {
     try {
       if (!await image.exists()) {
@@ -399,7 +399,7 @@ class _DocumentPageState extends State<DocumentPage> {
 
       final request = http.MultipartRequest(
         'POST',
-        Uri.parse('https://weloads.com/api/v1/uploadImage'),
+        Uri.parse('https://backend.weloads.live/api/v1/uploadImage'),
       );
       request.files.add(
         await http.MultipartFile.fromPath(

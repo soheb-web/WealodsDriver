@@ -37,7 +37,7 @@ class _OnbordingPageState extends State<OnbordingPage> {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(
-                    "Welcome to Snap Deiver App",
+                    "Welcome to Snap Driver App",
                     style: GoogleFonts.inter(
                       fontSize: 30.sp,
                       fontWeight: FontWeight.w400,

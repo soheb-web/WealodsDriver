@@ -290,12 +290,15 @@ class VihicalDetailsPage extends StatefulWidget {
 }
 
 class _VihicalDetailsPageState extends State<VihicalDetailsPage> {
-
   ({Color color, IconData icon, String text}) getStatusInfo(String? status) {
     final s = status?.toLowerCase();
     switch (s) {
       case 'approved':
-        return (color: const Color(0xFF25BC15), icon: Icons.check_circle, text: "Approved");
+        return (
+          color: const Color(0xFF25BC15),
+          icon: Icons.check_circle,
+          text: "Approved",
+        );
       case 'rejected':
         return (color: Colors.red, icon: Icons.cancel, text: "Rejected");
       case 'pending':
@@ -316,9 +319,9 @@ class _VihicalDetailsPageState extends State<VihicalDetailsPage> {
 
   void _showImagePreview(String? url) {
     if (url == null || url.isEmpty) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text("No image available")),
-      );
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(const SnackBar(content: Text("No image available")));
       return;
     }
     showDialog(
@@ -328,7 +331,19 @@ class _VihicalDetailsPageState extends State<VihicalDetailsPage> {
         child: Stack(
           children: [
             InteractiveViewer(
-              child: Center(child: Image.network(url, fit: BoxFit.contain)),
+              child: Center(
+                child: Image.network(
+                  url,
+                  fit: BoxFit.contain,
+                  errorBuilder: (context, error, stackTrace) {
+                    return Icon(
+                      Icons.image_not_supported,
+                      size: 40,
+                      color: Colors.grey,
+                    );
+                  },
+                ),
+              ),
             ),
             Positioned(
               top: 40,
@@ -366,8 +381,12 @@ class _VihicalDetailsPageState extends State<VihicalDetailsPage> {
           ),
         ),
         title: Text(
-          numberPlate,
-          style: GoogleFonts.inter(fontSize: 16.sp, fontWeight: FontWeight.w500),
+          // numberPlate,
+          vehicleName,
+          style: GoogleFonts.inter(
+            fontSize: 16.sp,
+            fontWeight: FontWeight.w500,
+          ),
         ),
         actions: [
           Padding(
@@ -390,33 +409,50 @@ class _VihicalDetailsPageState extends State<VihicalDetailsPage> {
             SizedBox(height: 28.h),
 
             _infoRow("Type", vehicleName),
-            SizedBox(height: 20.h),
+            SizedBox(height: 20.h), 
             _infoRow("Model", model),
             SizedBox(height: 20.h),
-            _infoRow("Registration", numberPlate),
+            _infoRow("Registration", 'Number Plate: ${numberPlate}'),
             SizedBox(height: 20.h),
 
-            Row(
-              children: [
-                Text("Status: ", style: TextStyle(fontSize: 14.sp, color: Color(0xFF77869E))),
-                Icon(vehicleStatus.icon, size: 18, color: vehicleStatus.color),
-                SizedBox(width: 6.w),
-                Text(
-                  vehicleStatus.text,
-                  style: TextStyle(fontSize: 14.sp, color: vehicleStatus.color, fontWeight: FontWeight.w600),
-                ),
-              ],
-            ),
-            SizedBox(height: 38.h),
-
+            // Row(
+            //   children: [
+            //     Text(
+            //       "Status: ",
+            //       style: TextStyle(
+            //         fontSize: 15.sp,
+            //         color: Color(0xFF77869E),
+            //         fontWeight: FontWeight.bold,
+            //       ),
+            //     ),
+            //     Icon(vehicleStatus.icon, size: 18, color: vehicleStatus.color),
+            //     SizedBox(width: 6.w),
+            //     Text(
+            //       vehicleStatus.text,
+            //       style: TextStyle(
+            //         fontSize: 16.sp,
+            //         color: vehicleStatus.color,
+            //         fontWeight: FontWeight.bold,
+            //       ),
+            //     ),
+            //   ],
+            // ),
+            //SizedBox(height: 38.h),
             Text(
               "Documents",
-              style: GoogleFonts.inter(fontSize: 16.sp, fontWeight: FontWeight.w600, color: const Color(0xFF111111)),
+              style: GoogleFonts.inter(
+                fontSize: 16.sp,
+                fontWeight: FontWeight.w600,
+                color: const Color(0xFF111111),
+              ),
             ),
             SizedBox(height: 12.h),
 
             if (documents.isEmpty)
-              Text("No documents uploaded yet.", style: TextStyle(color: Colors.grey[600], fontSize: 14.sp))
+              Text(
+                "No documents uploaded yet.",
+                style: TextStyle(color: Colors.grey[600], fontSize: 14.sp),
+              )
             else
               ...documents.map((doc) => _documentCard(doc)).toList(),
 
@@ -431,9 +467,22 @@ class _VihicalDetailsPageState extends State<VihicalDetailsPage> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text(label, style: GoogleFonts.inter(fontSize: 14.sp, color: const Color(0xFF77869E))),
+        Text(
+          label,
+          style: GoogleFonts.inter(
+            fontSize: 14.sp,
+            color: const Color(0xFF77869E),
+          ),
+        ),
         SizedBox(height: 4.h),
-        Text(value, style: GoogleFonts.inter(fontSize: 15.sp, fontWeight: FontWeight.w500, color: const Color(0xFF111111))),
+        Text(
+          value,
+          style: GoogleFonts.inter(
+            fontSize: 15.sp,
+            fontWeight: FontWeight.w500,
+            color: const Color(0xFF111111),
+          ),
+        ),
       ],
     );
   }
@@ -448,19 +497,19 @@ class _VihicalDetailsPageState extends State<VihicalDetailsPage> {
       child: InkWell(
         onTap: isRejected
             ? () {
-          Navigator.push(
-            context,
-            MaterialPageRoute(
-              builder: (context) => AddVihiclePage(
-                vehicleDetail: widget.vehicle,
-                documentToReupload: doc,
-              ),
-            ),
-          ).then((_) {
-            // Optional: Refresh data
-            setState(() {});
-          });
-        }
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (context) => AddVihiclePage(
+                      vehicleDetail: widget.vehicle,
+                      documentToReupload: doc,
+                    ),
+                  ),
+                ).then((_) {
+                  // Optional: Refresh data
+                  setState(() {});
+                });
+              }
             : () => _showImagePreview(doc.fileUrl),
         borderRadius: BorderRadius.circular(10.r),
         child: Container(
@@ -475,56 +524,96 @@ class _VihicalDetailsPageState extends State<VihicalDetailsPage> {
           ),
           child: Row(
             children: [
-              SvgPicture.asset("assets/SvgImage/do.svg", width: 42.w, height: 42.h),
+              SvgPicture.asset(
+                "assets/SvgImage/do.svg",
+                width: 42.w,
+                height: 42.h,
+              ),
               SizedBox(width: 16.w),
               Expanded(
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
-                      docName=="Other"?"Vihile Photo":
-                      docName,
-                      style: GoogleFonts.inter(fontSize: 15.sp, fontWeight: FontWeight.w600, color: const Color(0xFF333333)),
+                      docName == "Other" ? "Vihile Photo" : docName,
+                      style: GoogleFonts.inter(
+                        fontSize: 15.sp,
+                        fontWeight: FontWeight.w600,
+                        color: const Color(0xFF333333),
+                      ),
                     ),
                     SizedBox(height: 6.h),
                     Row(
                       children: [
-                        Icon(statusInfo.icon, size: 16, color: statusInfo.color),
+                        Icon(
+                          statusInfo.icon,
+                          size: 16,
+                          color: statusInfo.color,
+                        ),
                         SizedBox(width: 6.w),
                         Text(
                           statusInfo.text,
-                          style: GoogleFonts.inter(fontSize: 13.sp, color: statusInfo.color, fontWeight: FontWeight.w500),
+                          style: GoogleFonts.inter(
+                            fontSize: 13.sp,
+                            color: statusInfo.color,
+                            fontWeight: FontWeight.w500,
+                          ),
                         ),
                       ],
                     ),
                     if (doc.verifiedAt != null) ...[
                       SizedBox(height: 4.h),
-                      Text("Verified: ${formatDate(doc.verifiedAt)}", style: TextStyle(fontSize: 11.sp, color: Colors.grey[700])),
+                      Text(
+                        "Verified: ${formatDate(doc.verifiedAt)}",
+                        style: TextStyle(
+                          fontSize: 11.sp,
+                          color: Colors.grey[700],
+                        ),
+                      ),
                     ],
                     if (doc.remarks != null && doc.remarks!.isNotEmpty) ...[
                       SizedBox(height: 4.h),
-                      Text("Remark: ${doc.remarks}", style: TextStyle(fontSize: 11.sp, color: Colors.red, fontStyle: FontStyle.italic)),
+                      Text(
+                        "Remark: ${doc.remarks}",
+                        style: TextStyle(
+                          fontSize: 11.sp,
+                          color: Colors.red,
+                          fontStyle: FontStyle.italic,
+                        ),
+                      ),
                     ],
                     if (isRejected) ...[
                       SizedBox(height: 10.h),
                       Container(
-                        padding: EdgeInsets.symmetric(horizontal: 14.w, vertical: 8.h),
-                        decoration: BoxDecoration(color: Colors.red, borderRadius: BorderRadius.circular(20.r)),
+                        padding: EdgeInsets.symmetric(
+                          horizontal: 14.w,
+                          vertical: 8.h,
+                        ),
+                        decoration: BoxDecoration(
+                          color: Colors.red,
+                          borderRadius: BorderRadius.circular(20.r),
+                        ),
                         child: Text(
                           "TAP TO RE-UPLOAD",
-                          style: GoogleFonts.inter(fontSize: 12.sp, color: Colors.white, fontWeight: FontWeight.w700),
+                          style: GoogleFonts.inter(
+                            fontSize: 12.sp,
+                            color: Colors.white,
+                            fontWeight: FontWeight.w700,
+                          ),
                         ),
                       ),
                     ],
                   ],
                 ),
               ),
-              Icon(isRejected ? Icons.refresh : Icons.chevron_right, color: isRejected ? Colors.red : Colors.grey.shade600),
+              Icon(
+                isRejected ? Icons.refresh : Icons.chevron_right,
+                color: isRejected ? Colors.red : Colors.grey.shade600,
+              ),
             ],
           ),
         ),
       ),
     );
   }
-
 }

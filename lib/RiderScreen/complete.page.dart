@@ -7,8 +7,18 @@ import 'package:google_fonts/google_fonts.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 
 class CompletePage extends StatefulWidget {
-  final String userPayAmmount;
-  const CompletePage({super.key, required this.userPayAmmount});
+  final int previousAmount;           // Base amount driver को मिला
+  final int freeWaitingTime;          // Free minutes
+  final int extraWaitingMinutes;      // Extra minutes
+  final int extraWaitingCharge;       // Extra charge driver को मिला
+
+  const CompletePage({
+    super.key,
+    required this.previousAmount,
+    required this.freeWaitingTime,
+    required this.extraWaitingMinutes,
+    required this.extraWaitingCharge,
+  });
 
   @override
   State<CompletePage> createState() => _CompletePageState();
@@ -18,164 +28,175 @@ class _CompletePageState extends State<CompletePage> {
   GoogleMapController? _mapController;
   LatLng? _currentLatLng;
 
-  Future<void> _getCurrentLocation() async {
-    LocationPermission permission;
-
-    permission = await Geolocator.checkPermission();
-    if (permission == LocationPermission.denied) {
-      permission = await Geolocator.requestPermission();
-      if (permission == LocationPermission.denied) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text("Location permission denied")),
-        );
-        return;
-      }
-    }
-
-    if (permission == LocationPermission.deniedForever) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text(
-            "Location permission permanently denied. Please enable it from settings.",
-          ),
-        ),
-      );
-      return;
-    }
-
-    Position position = await Geolocator.getCurrentPosition(
-      desiredAccuracy: LocationAccuracy.high,
-    );
-
-    setState(() {
-      _currentLatLng = LatLng(position.latitude, position.longitude);
-    });
-    _mapController?.animateCamera(CameraUpdate.newLatLng(_currentLatLng!));
-  }
-
   @override
   void initState() {
-    // TODO: implement initState
     super.initState();
     _getCurrentLocation();
   }
 
+  Future<void> _getCurrentLocation() async {
+    LocationPermission permission = await Geolocator.checkPermission();
+    if (permission == LocationPermission.denied) {
+      permission = await Geolocator.requestPermission();
+      if (permission == LocationPermission.denied) return;
+    }
+    Position pos = await Geolocator.getCurrentPosition();
+    setState(() {
+      _currentLatLng = LatLng(pos.latitude, pos.longitude);
+    });
+    _mapController?.animateCamera(CameraUpdate.newLatLngZoom(_currentLatLng!, 15));
+  }
+
+  Widget _earningRow(String label, String value, {IconData? icon, Color? color}) {
+    return Padding(
+      padding: EdgeInsets.symmetric(vertical: 10.h),
+      child: Row(
+        children: [
+          if (icon != null) ...[
+            Icon(icon, size: 20.sp, color: color),
+            SizedBox(width: 8.w),
+          ],
+          Expanded(
+            child: Text(label, style: GoogleFonts.inter(fontSize: 16.sp, color: Colors.grey.shade700)),
+          ),
+          Text(value,
+              style: GoogleFonts.inter(fontSize: 17.sp, fontWeight: FontWeight.w600, color: color ?? Colors.black87)),
+        ],
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
+    final int totalWaiting = widget.freeWaitingTime + widget.extraWaitingMinutes;
+    final int totalEarning = widget.previousAmount + widget.extraWaitingCharge;
+
     return Scaffold(
-      floatingActionButtonLocation: FloatingActionButtonLocation.miniStartTop,
-      floatingActionButton: FloatingActionButton(
-        backgroundColor: Color(0xFFFFFFFF),
-        shape: CircleBorder(),
-        onPressed: () {
-          Navigator.pop(context);
-        },
-        child: Icon(Icons.arrow_back, color: Color(0xFF1D3557)),
-      ),
       body: _currentLatLng == null
-          ? Center(child: CircularProgressIndicator())
+          ? const Center(child: CircularProgressIndicator())
           : Stack(
         children: [
+
           GoogleMap(
-            initialCameraPosition: CameraPosition(
-              target: _currentLatLng!,
-              zoom: 15,
-            ),
-            onMapCreated: (controller) {
-              _mapController = controller;
-            },
+            initialCameraPosition: CameraPosition(target: _currentLatLng!, zoom: 15),
             myLocationEnabled: true,
-            myLocationButtonEnabled: true,
+            myLocationButtonEnabled: false,
+            zoomControlsEnabled: false,
+            onMapCreated: (c) => _mapController = c,
           ),
+
+          // Back Button
           Positioned(
-            bottom: 15.h,
-            child: Container(
-              margin: EdgeInsets.only(left: 18.w, right: 18.w),
-              width: 340.w,
-              height: 220.h,
-              decoration: BoxDecoration(
-                borderRadius: BorderRadius.circular(15.r),
-                color: Color(0xFFFFFFFF),
-                boxShadow: [
-                  BoxShadow(
-                    offset: Offset(0, 4),
-                    blurRadius: 20,
-                    spreadRadius: 0,
-                    color: Color.fromARGB(114, 0, 0, 0),
-                  ),
-                ],
+            top: 50.h,
+            left: 16.w,
+            child: CircleAvatar(
+              backgroundColor: Colors.white,
+              child: IconButton(
+                icon: Icon(Icons.arrow_back, color: Color(0xFF1D3557)),
+                onPressed: () => Navigator.pop(context),
               ),
-              child: Padding(
-                padding: EdgeInsets.only(left: 20.w, right: 20.w),
+            ),
+          ),
+
+          // Bottom Earning Card – Customer जैसा ही लुक
+          Positioned(
+            bottom: 30.h,
+            left: 20.w,
+            right: 20.w,
+            child: Material(
+              elevation: 15,
+              borderRadius: BorderRadius.circular(20.r),
+              child: Container(
+                padding: EdgeInsets.all(24.w),
+                decoration: BoxDecoration(
+                  color: Colors.white,
+                  borderRadius: BorderRadius.circular(20.r),
+                ),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    SizedBox(height: 23.h),
                     Row(
                       children: [
                         Container(
-                          width: 56.w,
-                          height: 56.h,
+                          padding: EdgeInsets.all(12.w),
                           decoration: BoxDecoration(
+                            color: Color(0xFFE8F5E8),
                             shape: BoxShape.circle,
-                            color: Color(0xFFF0F5EF),
                           ),
-                          child: Center(
-                            child: Icon(
-                              Icons.done,
-                              color: Color(0xFF25BC15),
-                              size: 25.sp,
-                              fontWeight: FontWeight.w800,
-                            ),
-                          ),
+                          child: Icon(Icons.check_circle, color: Colors.green, size: 32.sp),
                         ),
-                        SizedBox(width: 10.w),
-                        Text(
-                          // "₹300",
-                          widget.userPayAmmount,
-                          style: GoogleFonts.inter(
-                            fontSize: 24.sp,
-                            fontWeight: FontWeight.w400,
-                            color: Color(0xFF091425),
-                          ),
+                        SizedBox(width: 16.w),
+                        Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text("Delivery Completed!",
+                                style: GoogleFonts.inter(fontSize: 16.sp, fontWeight: FontWeight.w600)),
+                            Text("₹$totalEarning earned",
+                                style: GoogleFonts.inter(
+                                    fontSize: 18.sp,
+                                    fontWeight: FontWeight.bold,
+                                    color: Color(0xFF006970))),
+                          ],
                         ),
                       ],
                     ),
+
+                    SizedBox(height: 24.h),
+
+                    Text("Earning Details", style: GoogleFonts.inter(fontSize: 18.sp, fontWeight: FontWeight.w600)),
+
                     SizedBox(height: 16.h),
-                    Text(
-                      "Great you have completed this delivery, your wallet has been credited with the delivery cost.",
-                      style: GoogleFonts.inter(
-                        fontSize: 12.sp,
-                        fontWeight: FontWeight.w400,
-                        color: Color(0xFF000000),
-                      ),
+
+                    _earningRow("Base Delivery Amount", "₹${widget.previousAmount}"),
+                    _earningRow("Free Waiting Time", "${widget.freeWaitingTime} min",
+                        icon: Icons.access_time, color: Colors.green.shade600),
+                    _earningRow("Total Waiting Time", "$totalWaiting min",
+                        icon: Icons.timer, color: Colors.blue.shade700),
+
+                    if (widget.extraWaitingMinutes > 0) ...[
+                      _earningRow("Extra Waiting Time", "${widget.extraWaitingMinutes} min",
+                          icon: Icons.warning_amber_rounded, color: Colors.orange),
+                      _earningRow("Extra Waiting Bonus", "+₹${widget.extraWaitingCharge}",
+                          icon: Icons.add_circle, color: Colors.green),
+                    ] else
+                      _earningRow("Extra Waiting", "No extra time", color: Colors.grey.shade600),
+
+                    Divider(height: 36.h, thickness: 1.5, color: Color(0xFF006970)),
+
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        Text("Total Earnings",
+                            style: GoogleFonts.inter(fontSize: 18.sp, fontWeight: FontWeight.w600)),
+                        Text("₹$totalEarning",
+                            style: GoogleFonts.inter(
+                                fontSize: 20.sp,
+                                fontWeight: FontWeight.bold,
+                                color: Color(0xFF006970))),
+                      ],
                     ),
-                    SizedBox(height: 20.h),
-                    ElevatedButton(
-                      style: ElevatedButton.styleFrom(
-                        minimumSize: Size(306.w, 45.h),
-                        backgroundColor: Color(0xFF006970),
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(3.r),
-                          side: BorderSide.none,
+
+                    SizedBox(height: 24.h),
+
+                    SizedBox(
+                      width: double.infinity,
+                      height: 45.h,
+                      child: ElevatedButton(
+                        onPressed: () {
+                          Navigator.pushAndRemoveUntil(
+                            context,
+                            CupertinoPageRoute(
+                              builder: (_) =>  HomePage(0, forceSocketRefresh: true),
+                            ),
+                                (route) => false,
+                          );
+                        },
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: Color(0xFF006970),
+                          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16.r)),
                         ),
-                      ),
-                      onPressed: () {
-                        Navigator.pushAndRemoveUntil(
-                          context,
-                          CupertinoPageRoute(
-                            builder: (context) => HomePage(0,forceSocketRefresh:true),
-                          ),
-                              (route) => false,
-                        );
-                      },
-                      child: Text(
-                        "Done",
-                        style: GoogleFonts.inter(
-                          fontSize: 15.sp,
-                          fontWeight: FontWeight.w500,
-                          color: Colors.white,
-                        ),
+                        child: Text("Go to Home",
+                            style: GoogleFonts.inter(fontSize: 18.sp, fontWeight: FontWeight.w600, color: Colors.white)),
                       ),
                     ),
                   ],

@@ -1,742 +1,15 @@
-/*
 
-
-import 'dart:developer';
-
-import 'package:delivery_rider_app/RiderScreen/processDropOff.page.dart';
-import 'package:flutter/cupertino.dart';
-import 'package:flutter/material.dart';
-import 'package:flutter_screenutil/flutter_screenutil.dart';
-import 'package:geolocator/geolocator.dart';
-import 'package:google_fonts/google_fonts.dart';
-import 'package:google_maps_flutter/google_maps_flutter.dart';
-import 'dart:convert';
-import 'package:http/http.dart' as http;
-import 'package:url_launcher/url_launcher.dart';
-import '../data/model/DeliveryResponseModel.dart';
-import 'package:socket_io_client/socket_io_client.dart' as IO;
-
-import 'home.page.dart';
-
-class MapLiveScreen extends StatefulWidget {
-  final IO.Socket? socket;
-  final Data deliveryData;
-  final double? pickupLat;
-  final double? pickupLong;
-  final double? dropLat;
-  final double? droplong;
-  final String txtid;
-  const MapLiveScreen({
-    this.socket,
-    this.pickupLat,
-    this.pickupLong,
-    this.dropLat,
-    this.droplong,
-    super.key,
-    required this.deliveryData,
-    required this.txtid,
-  });
-
-  @override
-  State<MapLiveScreen> createState() => _MapLiveScreenState();
-}
-
-class _MapLiveScreenState extends State<MapLiveScreen> {
-  GoogleMapController? _mapController;
-  LatLng? _currentLatLng;
-  final Set<Marker> _markers = {};
-  final Set<Polyline> _polylines = {};
-  List<LatLng> _routePoints = [];
-  bool _routeFetched = false;
-  String? toPickupDistance;
-  late IO.Socket _socket;
-  String? toPickupDuration;
-  String? pickupToDropDistance;
-  String? pickupToDropDuration;
-  String? totalDistance;
-  String? totalDuration;
-
-  @override
-  void initState() {
-    super.initState();
-    _socket = widget.socket!;
-    _emitDriverArrivedAtPickup();
-    _getCurrentLocation();
-  }
-
-  void _emitDriverArrivedAtPickup() {
-    final payload = {"deliveryId": widget.deliveryData!.id};
-    if (_socket.connected) {
-      // Emit the event
-      _socket.emit("delivery:status_update", payload);
-      log("Emitted → $payload");
-      // Listen for acknowledgment/response from server
-      _socket.on("delivery:status_update", (data) {
-        log("Status updated response: $data");
-        // Handle success (e.g., update UI, stop loader, etc.)
-        // Check if status is "completed"
-        if (data['status'] == 'completed' ||
-            data['status'] == 'cancelled_by_customer') {
-          // Navigate to Home screen
-          _navigateToHomeScreen();
-        } else {
-          // Handle other status updates
-          _handleStatusUpdateSuccess(data);
-        }
-        _handleStatusUpdateSuccess(data);
-      });
-      // Optional: Listen for error
-      _socket.on("delivery:status_error", (error) {
-        log("Status update failed: $error");
-        // Handle error
-        // _handleStatusUpdateError(error);
-      });
-    } else {
-      log("Socket not connected, retrying...");
-      Future.delayed(const Duration(seconds: 2), _emitDriverArrivedAtPickup);
-    }
-  }
-
-  void _navigateToHomeScreen() {
-    Navigator.pushAndRemoveUntil(
-      context,
-      CupertinoPageRoute(builder: (_) => HomePage(0, forceSocketRefresh: true)),
-      (route) => route.isFirst,
-    );
-  }
-
-  Future<void> _handleStatusUpdateSuccess(dynamic payload) async {
-    log("📩 Booking Request Received: $payload");
-  }
-
-  Future<void> _getCurrentLocation() async {
-    LocationPermission permission = await Geolocator.checkPermission();
-    if (permission == LocationPermission.denied) {
-      permission = await Geolocator.requestPermission();
-      if (permission == LocationPermission.denied) {
-        if (mounted) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(content: Text("Location permission denied")),
-          );
-        }
-        return;
-      }
-    }
-    if (permission == LocationPermission.deniedForever) {
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text(
-              "Location permission permanently denied. Please enable it from settings.",
-            ),
-          ),
-        );
-      }
-      return;
-    }
-    Position position = await Geolocator.getCurrentPosition(
-      desiredAccuracy: LocationAccuracy.high,
-    );
-    if (mounted) {
-      setState(() {
-        _currentLatLng = LatLng(position.latitude, position.longitude);
-      });
-      _addMarkers();
-    }
-  }
-
-  void _addMarkers() {
-    _markers.clear(); // Clear previous markers to avoid duplicates
-    if (_currentLatLng != null) {
-      _markers.add(
-        Marker(
-          markerId: const MarkerId('current'),
-          position: _currentLatLng!,
-          infoWindow: const InfoWindow(title: 'Current Location'),
-          icon: BitmapDescriptor.defaultMarkerWithHue(
-            BitmapDescriptor.hueGreen,
-          ),
-        ),
-      );
-    }
-    if (widget.pickupLat != null && widget.pickupLong != null) {
-      _markers.add(
-        Marker(
-          markerId: const MarkerId('pickup'),
-          position: LatLng(widget.pickupLat!, widget.pickupLong!),
-          infoWindow: const InfoWindow(title: 'Pickup Location'),
-          icon: BitmapDescriptor.defaultMarkerWithHue(BitmapDescriptor.hueRed),
-        ),
-      );
-    }
-    if (widget.dropLat != null && widget.droplong != null) {
-      _markers.add(
-        Marker(
-          markerId: const MarkerId('drop'),
-          position: LatLng(widget.dropLat!, widget.droplong!),
-          infoWindow: const InfoWindow(title: 'Drop Location'),
-          icon: BitmapDescriptor.defaultMarkerWithHue(
-            BitmapDescriptor.hueOrange,
-          ),
-        ),
-      );
-    }
-    setState(() {});
-  }
-
-  Future<void> _fetchRoute() async {
-    if (_currentLatLng == null) {
-      print('Error: Current location is null');
-      return;
-    }
-    if (widget.pickupLat == null || widget.pickupLong == null) {
-      print('Error: Pickup location is null');
-      return;
-    }
-
-    const String apiKey = 'AIzaSyC2UYnaHQEwhzvibI-86f8c23zxgDTEX3g';
-    double totalDistKm = 0.0;
-    int totalTimeMin = 0;
-    List<LatLng> points1 = [];
-    List<LatLng> points2 = [];
-
-    // Fetch route to pickup
-    String origin1 = '${_currentLatLng!.latitude},${_currentLatLng!.longitude}';
-    String dest1 = '${widget.pickupLat!},${widget.pickupLong!}';
-
-    Uri url1 = Uri.https('maps.googleapis.com', '/maps/api/directions/json', {
-      'origin': origin1,
-      'destination': dest1,
-      'key': apiKey,
-    });
-
-    try {
-      final response1 = await http.get(url1);
-      if (response1.statusCode == 200) {
-        final data1 = json.decode(response1.body);
-        if (data1['status'] == 'OK' &&
-            data1['routes'] != null &&
-            data1['routes'].isNotEmpty) {
-          final String poly1 =
-              data1['routes'][0]['overview_polyline']['points'];
-          points1 = _decodePolyline(poly1);
-          final leg1 = data1['routes'][0]['legs'][0];
-          toPickupDistance = leg1['distance']['text'];
-          toPickupDuration = leg1['duration']['text'];
-          totalDistKm += (leg1['distance']['value'] as num) / 1000.0;
-          totalTimeMin += (leg1['duration']['value'] as int) ~/ 60;
-        } else {
-          print('Directions API error for to pickup: ${data1['status']}');
-        }
-      } else {
-        print('HTTP error for to pickup: ${response1.statusCode}');
-      }
-    } catch (e) {
-      print('Exception fetching route to pickup: $e');
-    }
-
-    // Fetch route from pickup to drop (if drop location available)
-    if (widget.dropLat != null && widget.droplong != null) {
-      String origin2 = dest1;
-      String dest2 = '${widget.dropLat!},${widget.droplong!}';
-      Uri url2 = Uri.https('maps.googleapis.com', '/maps/api/directions/json', {
-        'origin': origin2,
-        'destination': dest2,
-        'key': apiKey,
-      });
-
-      try {
-        final response2 = await http.get(url2);
-        if (response2.statusCode == 200) {
-          final data2 = json.decode(response2.body);
-          if (data2['status'] == 'OK' &&
-              data2['routes'] != null &&
-              data2['routes'].isNotEmpty) {
-            final String poly2 =
-                data2['routes'][0]['overview_polyline']['points'];
-            points2 = _decodePolyline(poly2);
-            final leg2 = data2['routes'][0]['legs'][0];
-            pickupToDropDistance = leg2['distance']['text'];
-            pickupToDropDuration = leg2['duration']['text'];
-            totalDistKm += (leg2['distance']['value'] as num) / 1000.0;
-            totalTimeMin += (leg2['duration']['value'] as int) ~/ 60;
-          } else {
-            print(
-              'Directions API error for pickup to drop: ${data2['status']}',
-            );
-          }
-        } else {
-          print('HTTP error for pickup to drop: ${response2.statusCode}');
-        }
-      } catch (e) {
-        print('Exception fetching route from pickup to drop: $e');
-      }
-    }
-
-    // Update UI
-    if (mounted) {
-      setState(() {
-        _polylines.clear();
-
-        if (points1.isNotEmpty) {
-          _polylines.add(
-            Polyline(
-              polylineId: const PolylineId('toPickup'),
-              points: points1,
-              color: Colors.green,
-              width: 5,
-            ),
-          );
-        }
-
-        if (points2.isNotEmpty) {
-          _polylines.add(
-            Polyline(
-              polylineId: const PolylineId('toDrop'),
-              points: points2,
-              color: Colors.blue,
-              width: 5,
-            ),
-          );
-        }
-
-        totalDistance = '${totalDistKm.toStringAsFixed(1)} km';
-        totalDuration = '${totalTimeMin.toStringAsFixed(0)} min';
-        _routePoints = [...points1, ...points2];
-      });
-
-      // Animate camera to fit the route
-      if (_mapController != null && _routePoints.isNotEmpty) {
-        LatLngBounds bounds = _calculateBounds(_routePoints);
-        _mapController!.animateCamera(CameraUpdate.newLatLngBounds(bounds, 50));
-      }
-    }
-
-    print(
-      'Route loaded: ${points1.length} points to pickup, ${points2.length} points to drop',
-    );
-  }
-
-  LatLngBounds _calculateBounds(List<LatLng> points) {
-    if (points.isEmpty) {
-      return LatLngBounds(
-        southwest: _currentLatLng!,
-        northeast: _currentLatLng!,
-      );
-    }
-
-    double minLat = points[0].latitude;
-    double maxLat = points[0].latitude;
-    double minLng = points[0].longitude;
-    double maxLng = points[0].longitude;
-
-    for (LatLng point in points) {
-      if (point.latitude < minLat) minLat = point.latitude;
-      if (point.latitude > maxLat) maxLat = point.latitude;
-      if (point.longitude < minLng) minLng = point.longitude;
-      if (point.longitude > maxLng) maxLng = point.longitude;
-    }
-
-    // Include pickup and drop if not in points
-    if (widget.pickupLat != null && widget.pickupLong != null) {
-      LatLng pickup = LatLng(widget.pickupLat!, widget.pickupLong!);
-      if (pickup.latitude < minLat) minLat = pickup.latitude;
-      if (pickup.latitude > maxLat) maxLat = pickup.latitude;
-      if (pickup.longitude < minLng) minLng = pickup.longitude;
-      if (pickup.longitude > maxLng) maxLng = pickup.longitude;
-    }
-
-    if (widget.dropLat != null && widget.droplong != null) {
-      LatLng drop = LatLng(widget.dropLat!, widget.droplong!);
-      if (drop.latitude < minLat) minLat = drop.latitude;
-      if (drop.latitude > maxLat) maxLat = drop.latitude;
-      if (drop.longitude < minLng) minLng = drop.longitude;
-      if (drop.longitude > maxLng) maxLng = drop.longitude;
-    }
-
-    return LatLngBounds(
-      southwest: LatLng(minLat, minLng),
-      northeast: LatLng(maxLat, maxLng),
-    );
-  }
-
-  List<LatLng> _decodePolyline(String encoded) {
-    List<LatLng> points = <LatLng>[];
-    int index = 0;
-    final int len = encoded.length;
-    int lat = 0;
-    int lng = 0;
-
-    while (index < len) {
-      int b;
-      int shift = 0;
-      int result = 0;
-      do {
-        b = encoded.codeUnitAt(index++) - 63;
-        result |= (b & 0x1f) << shift;
-        shift += 5;
-      } while (b >= 0x20);
-      final int dlat = ((result & 1) != 0 ? ~(result >> 1) : (result >> 1));
-      lat += dlat;
-
-      shift = 0;
-      result = 0;
-      do {
-        b = encoded.codeUnitAt(index++) - 63;
-        result |= (b & 0x1f) << shift;
-        shift += 5;
-      } while (b >= 0x20);
-      final int dlng = ((result & 1) != 0 ? ~(result >> 1) : (result >> 1));
-      lng += dlng;
-
-      points.add(LatLng(lat / 1E5, lng / 1E5));
-    }
-
-    return points;
-  }
-
-  bool isLoading = false;
-  Future<void> _makePhoneCall(String phoneNumber) async {
-    final Uri launchUri = Uri(scheme: 'tel', path: phoneNumber);
-    await launchUrl(launchUri);
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    final customer = widget.deliveryData.customer;
-    final pickup = widget.deliveryData.pickup;
-    final dropoff = widget.deliveryData.dropoff;
-    final packageDetails = widget.deliveryData.packageDetails;
-    final senderName = customer != null
-        ? '${customer.firstName ?? ''} ${customer.lastName ?? ''}'
-        : 'Unknown Sender';
-    final deliveries = customer?.completedOrderCount ?? 0;
-    final rating = customer?.averageRating ?? 0;
-    final phone = customer?.phone ?? '';
-    final packageType = packageDetails?.fragile == true
-        ? 'Fragile Item'
-        : 'Electronics/Gadgets';
-    final pickupLocation = pickup?.name ?? 'Unknown Pickup';
-    final dropLocation = dropoff?.name ?? 'Unknown Drop';
-
-    return PopScope(
-      canPop: false,
-      onPopInvoked: (didPop) {
-        if (!didPop) {
-          Navigator.push(
-            context,
-            MaterialPageRoute(
-              builder: (context) => HomePage(0, forceSocketRefresh: true),
-            ),
-          );
-        }
-      },
-      child: Scaffold(
-        // floatingActionButtonLocation: FloatingActionButtonLocation.miniStartTop,
-        // floatingActionButton: FloatingActionButton(
-        //   backgroundColor: const Color(0xFFFFFFFF),
-        //   shape: const CircleBorder(),
-        //   onPressed: () {
-        //     Navigator.pop(context);
-        //   },
-        //   child: const Icon(Icons.arrow_back, color: Color(0xFF1D3557)),
-        // ),
-        body: _currentLatLng == null
-            ? const Center(child: CircularProgressIndicator())
-            : Stack(
-                children: [
-                  GoogleMap(
-                    initialCameraPosition: CameraPosition(
-                      target: _currentLatLng!,
-                      zoom: 15,
-                    ),
-                    onMapCreated: (controller) {
-                      _mapController = controller;
-                      if (_currentLatLng != null) {
-                        _mapController!.animateCamera(
-                          CameraUpdate.newLatLng(_currentLatLng!),
-                        );
-                      }
-                      if (!_routeFetched &&
-                          (widget.pickupLat != null ||
-                              widget.dropLat != null)) {
-                        _routeFetched = true;
-                        _fetchRoute();
-                      }
-                    },
-                    myLocationEnabled: true,
-                    myLocationButtonEnabled: true,
-                    markers: _markers,
-                    polylines: _polylines,
-                  ),
-
-                  if (toPickupDistance != null || pickupToDropDistance != null)
-                    Positioned(
-                      bottom: 70.h,
-                      left: 16.w,
-                      right: 16.w,
-                      child: Container(
-                        padding: EdgeInsets.all(12.w),
-                        decoration: BoxDecoration(
-                          color: Colors.white,
-                          borderRadius: BorderRadius.circular(8.r),
-                          boxShadow: [
-                            BoxShadow(
-                              color: Colors.black.withOpacity(0.1),
-                              blurRadius: 4,
-                              offset: const Offset(0, 2),
-                            ),
-                          ],
-                        ),
-                        child: Column(
-                          mainAxisSize: MainAxisSize.min,
-                          children: [
-                            if (toPickupDistance != null)
-                              Text(
-                                'To Pickup: $toPickupDistance | $toPickupDuration',
-                                style: GoogleFonts.inter(fontSize: 14.sp),
-                              ),
-                            if (pickupToDropDistance != null)
-                              Padding(
-                                padding: EdgeInsets.symmetric(vertical: 4.h),
-                                child: Text(
-                                  'To Drop: $pickupToDropDistance | $pickupToDropDuration',
-                                  style: GoogleFonts.inter(fontSize: 14.sp),
-                                ),
-                              ),
-                            Text(
-                              'Total: $totalDistance | $totalDuration',
-                              style: GoogleFonts.inter(
-                                fontSize: 14.sp,
-                                fontWeight: FontWeight.w600,
-                              ),
-                            ),
-                          ],
-                        ),
-                      ),
-                    ),
-                  Positioned(
-                    bottom: 15.h,
-                    child: Container(
-                      margin: EdgeInsets.only(left: 18.w, right: 18.w),
-                      width: 340.w,
-                      // height:
-                      //     300.h, // Increased height to accommodate more content
-                      decoration: BoxDecoration(
-                        borderRadius: BorderRadius.circular(15.r),
-                        color: Color(0xFFFFFFFF),
-                        boxShadow: [
-                          BoxShadow(
-                            offset: Offset(0, 4),
-                            blurRadius: 20,
-                            spreadRadius: 0,
-                            color: Color.fromARGB(114, 0, 0, 0),
-                          ),
-                        ],
-                      ),
-                      child: Padding(
-                        padding: EdgeInsets.only(
-                          left: 20.w,
-                          right: 20.w,
-                          bottom: 10.h,
-                        ),
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Center(
-                              child: Container(
-                                margin: EdgeInsets.only(top: 10.h),
-                                width: 33.w,
-                                height: 4.h,
-                                decoration: BoxDecoration(
-                                  color: Color.fromARGB(127, 203, 205, 204),
-                                  borderRadius: BorderRadius.circular(10.r),
-                                ),
-                              ),
-                            ),
-                            SizedBox(height: 10.h),
-                            Row(
-                              children: [
-                                Container(
-                                  width: 56.w,
-                                  height: 56.h,
-                                  decoration: BoxDecoration(
-                                    shape: BoxShape.circle,
-                                    color: Color(0xFFA8DADC),
-                                  ),
-                                  child: Center(
-                                    child: Text(
-                                      "${senderName.substring(0, 2).toUpperCase()}",
-                                      style: GoogleFonts.inter(
-                                        fontSize: 24.sp,
-                                        fontWeight: FontWeight.w500,
-                                        color: Color(0xFF4F4F4F),
-                                      ),
-                                    ),
-                                  ),
-                                ),
-                                SizedBox(width: 10.w),
-                                Expanded(
-                                  child: Column(
-                                    crossAxisAlignment:
-                                        CrossAxisAlignment.start,
-                                    children: [
-                                      Text(
-                                        senderName,
-                                        style: GoogleFonts.inter(
-                                          fontSize: 16.sp,
-                                          fontWeight: FontWeight.w400,
-                                          color: Color(0xFF111111),
-                                        ),
-                                      ),
-                                      Text(
-                                        "$deliveries Deliveries",
-                                        style: GoogleFonts.inter(
-                                          fontSize: 13.sp,
-                                          fontWeight: FontWeight.w500,
-                                          color: Color(0xFF4F4F4F),
-                                        ),
-                                      ),
-                                      Row(
-                                        children: [
-                                          for (int i = 0; i < 5; i++)
-                                            Icon(
-                                              Icons.star,
-                                              color: i < rating
-                                                  ? Colors.yellow
-                                                  : Colors.grey,
-                                              size: 16.sp,
-                                            ),
-                                          SizedBox(width: 5.w),
-                                          Text(
-                                            "$rating",
-                                            style: GoogleFonts.inter(
-                                              fontSize: 12.sp,
-                                              fontWeight: FontWeight.w500,
-                                              color: Color(0xFF4F4F4F),
-                                            ),
-                                          ),
-                                        ],
-                                      ),
-                                    ],
-                                  ),
-                                ),
-                              ],
-                            ),
-                            SizedBox(height: 10.h),
-                            Text(
-                              packageType,
-                              style: GoogleFonts.inter(
-                                fontSize: 15.sp,
-                                fontWeight: FontWeight.w400,
-                                color: Color(0xFF00122E),
-                              ),
-                            ),
-                            SizedBox(height: 8.h),
-                            Text(
-                              "Pickup: $pickupLocation",
-                              style: GoogleFonts.inter(
-                                fontSize: 13.sp,
-                                fontWeight: FontWeight.w400,
-                                color: Color(0xFF545454),
-                              ),
-                            ),
-                            SizedBox(height: 4.h),
-                            Text(
-                              "Drop: $dropLocation",
-                              style: GoogleFonts.inter(
-                                fontSize: 13.sp,
-                                fontWeight: FontWeight.w400,
-                                color: Color(0xFF545454),
-                              ),
-                            ),
-                            SizedBox(height: 8.h),
-                            GestureDetector(
-                              onTap: () => _makePhoneCall(phone),
-                              child: Text.rich(
-                                TextSpan(
-                                  children: [
-                                    TextSpan(
-                                      text:
-                                          "Recipient: ${dropoff?.name ?? 'Unknown'}",
-                                      style: GoogleFonts.inter(
-                                        fontSize: 12.sp,
-                                        fontWeight: FontWeight.w400,
-                                        color: Color(0xFF545454),
-                                      ),
-                                    ),
-                                    TextSpan(
-                                      text: "   $phone",
-                                      style: GoogleFonts.inter(
-                                        fontSize: 12.sp,
-                                        fontWeight: FontWeight.w400,
-                                        color: Color(0xFF0945DE),
-                                      ),
-                                    ),
-                                  ],
-                                ),
-                              ),
-                            ),
-                            SizedBox(height: 15.h),
-                            ElevatedButton(
-                              style: ElevatedButton.styleFrom(
-                                minimumSize: Size(306.w, 45.h),
-                                backgroundColor: Color(0xFF006970),
-                                shape: RoundedRectangleBorder(
-                                  borderRadius: BorderRadius.circular(3.r),
-                                  side: BorderSide.none,
-                                ),
-                              ),
-                              onPressed: () {
-                                Navigator.push(
-                                  context,
-                                  CupertinoPageRoute(
-                                    builder: (context) =>
-                                        ProcessDropOffPage(txtid: widget.txtid),
-                                  ),
-                                );
-                              },
-                              child: isLoading
-                                  ? Center(
-                                      child: SizedBox(
-                                        width: 20.w,
-                                        height: 20.h,
-
-                                        child: CircularProgressIndicator(
-                                          color: Colors.white,
-                                          strokeWidth: 2.w,
-                                        ),
-                                      ),
-                                    )
-                                  : Text(
-                                      "complete",
-                                      style: GoogleFonts.inter(
-                                        fontSize: 15.sp,
-                                        fontWeight: FontWeight.w500,
-                                        color: Colors.white,
-                                      ),
-                                    ),
-                            ),
-                          ],
-                        ),
-                      ),
-                    ),
-                  ),
-                ],
-              ),
-      ),
-    );
-  }
-}
-*/
 
 
 import 'dart:developer';
 import 'dart:ui' as ui;
+import 'package:cached_network_image/cached_network_image.dart';
 import 'package:delivery_rider_app/RiderScreen/processDropOff.page.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
+import 'package:flutter_svg/svg.dart';
+import 'package:fluttertoast/fluttertoast.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
@@ -754,9 +27,9 @@ class MapLiveScreen extends StatefulWidget {
   final Data deliveryData;
   final double? pickupLat;
   final double? pickupLong;
-  final List<double> dropLats;      // Multiple
-  final List<double> dropLons;      // Multiple
-  final List<String> dropNames;     // Multiple
+  final List<double> dropLats;
+  final List<double> dropLons;
+  final List<String> dropNames;
   final String txtid;
 
   const MapLiveScreen({
@@ -793,7 +66,8 @@ class _MapLiveScreenState extends State<MapLiveScreen> {
   late IO.Socket _socket;
   late BitmapDescriptor driverIcon;
   String? error;
-
+  String? totalCustomerDistance;   // Pickup → Last Drop (Customer journey)
+  String? totalCustomerDuration;   // Pickup → Last Drop time
   DeliveryResponseModel? deliveryData;
   bool isLoadingData = true;
   @override
@@ -807,6 +81,61 @@ class _MapLiveScreenState extends State<MapLiveScreen> {
     _createNumberIcons();
     loadSimpleDriverIcon().then((_) {
       if (mounted) setState(() {});
+    });
+
+
+    final payload = {"deliveryId": widget.deliveryData.id};
+    _socket.emit("delivery:status_update", payload);
+    _socket.on("delivery:status_update", (data) {
+      log("Socket Event: $data");
+
+      if (data is Map && data["status"] == "arrived") {
+
+
+        final waitingTime =
+        data["waitingTime"]; // ← Ye minutes mein aata hai (2, 4, 7, 10 etc)
+        final arrivedAt = data["arrivedAt"];
+        int freeMinutes = 5; // fallback
+        if (waitingTime != null) {
+          freeMinutes = int.tryParse(waitingTime.toString()) ?? 5;
+        }
+        int elapsedSeconds = 0;
+
+        if (arrivedAt != null) {
+          final serverTimestamp = arrivedAt is num
+              ? arrivedAt.toInt()
+              : int.tryParse(arrivedAt.toString()) ?? 0;
+          if (serverTimestamp > 0) {
+            elapsedSeconds =
+                ((DateTime.now().millisecondsSinceEpoch - serverTimestamp) /
+                    1000)
+                    .floor();
+          }
+        }
+        // Step 3: Timer ko perfect sync kar do
+        // _startOrSyncWaitingTimer(
+        //   fromSeconds: elapsedSeconds,
+        //   freeMinutes: freeMinutes,
+        // );
+        log(
+          "Perfect Sync → Free: $freeMinutes min | Elapsed: $elapsedSeconds sec",
+        );
+
+
+        // ... your existing arrived logic
+      }
+      else if (data is Map && data["status"] == "cancelled_by_user") {
+        Navigator.pushAndRemoveUntil(
+          context,
+          CupertinoPageRoute(
+            builder: (_) => HomePage(
+              0,
+              forceSocketRefresh: true,
+            ),
+          ),
+              (route) => route.isFirst,
+        );
+      }
     });
   }
 
@@ -875,9 +204,7 @@ class _MapLiveScreenState extends State<MapLiveScreen> {
       _driverLatLng = LatLng(lat, lon);
       _addMarkersAndRoute();
       print("Driver Location Updated: $_driverLatLng");
-      // // Agar map pe marker move karna hai to yahan call karo
-      // _moveDriverMarker(_driverLatLng!);
-      // UI update ke liye (if needed)
+
       setState(() {});
     } else {
       print("Driver location failed or not available");
@@ -1036,44 +363,112 @@ class _MapLiveScreenState extends State<MapLiveScreen> {
     _fetchFullRoute();
   }
 
+  // Future<void> _fetchFullRoute() async {
+  //   if (_currentLatLng == null || widget.pickupLat == null || widget.dropLats.isEmpty) return;
+  //
+  //   const apiKey = 'AIzaSyC2UYnaHQEwhzvibI-86f8c23zxgDTEX3g';
+  //   List<LatLng> allPoints = [];
+  //   double totalDist = 0.0;
+  //   double totalTime = 0.0;
+  //
+  //   String origin = '${_currentLatLng!.latitude},${_currentLatLng!.longitude}';
+  //   String pickup = '${widget.pickupLat!},${widget.pickupLong!}';
+  //
+  //   // Current → Pickup
+  //   var leg1 = await _fetchLeg(origin, pickup, apiKey);
+  //   if (leg1 != null) {
+  //     allPoints.addAll(leg1['points']);
+  //     toPickupDistance = leg1['distance'];
+  //     toPickupDuration = leg1['duration'];
+  //     totalDist += leg1['distValue'];
+  //     totalTime += leg1['timeValue'];
+  //   }
+  //
+  //   // Pickup → Drop1 → Drop2 → Drop3
+  //   String previous = pickup;
+  //   for (int i = 0; i < widget.dropLats.length; i++) {
+  //     String dest = '${widget.dropLats[i]},${widget.dropLons[i]}';
+  //     var leg = await _fetchLeg(previous, dest, apiKey);
+  //     if (leg != null) {
+  //       allPoints.addAll(leg['points']);
+  //       dropDistances.add(leg['distance']);
+  //       dropDurations.add(leg['duration']);
+  //       totalDist += leg['distValue'];
+  //       totalTime += leg['timeValue'];
+  //     }
+  //     previous = dest;
+  //   }
+  //
+  //   if (mounted) {
+  //     setState(() {
+  //       _polylines.add(Polyline(
+  //         polylineId: const PolylineId('full_route'),
+  //         points: allPoints,
+  //         color: Colors.blue,
+  //         width: 6,
+  //       ));
+  //
+  //       totalDistance = '${(totalDist / 1000).toStringAsFixed(1)} km';
+  //       totalDuration = '${(totalTime / 60).toStringAsFixed(0)} min';
+  //       _routePoints = allPoints;
+  //     });
+  //
+  //     if (_mapController != null && allPoints.isNotEmpty) {
+  //       final bounds = _calculateBounds(allPoints);
+  //       _mapController!.animateCamera(CameraUpdate.newLatLngBounds(bounds, 80));
+  //     }
+  //   }
+  // }
+
+
+
   Future<void> _fetchFullRoute() async {
     if (_currentLatLng == null || widget.pickupLat == null || widget.dropLats.isEmpty) return;
 
     const apiKey = 'AIzaSyC2UYnaHQEwhzvibI-86f8c23zxgDTEX3g';
     List<LatLng> allPoints = [];
-    double totalDist = 0.0;
-    double totalTime = 0.0;
+
+    double riderToPickupDist = 0.0;
+    double riderToPickupTime = 0.0;
+
+    double customerJourneyDist = 0.0;   // Yeh customer ke liye
+    double customerJourneyTime = 0.0;   // Yeh customer ke liye
 
     String origin = '${_currentLatLng!.latitude},${_currentLatLng!.longitude}';
     String pickup = '${widget.pickupLat!},${widget.pickupLong!}';
 
-    // Current → Pickup
+    // 1. Rider → Pickup
     var leg1 = await _fetchLeg(origin, pickup, apiKey);
     if (leg1 != null) {
       allPoints.addAll(leg1['points']);
       toPickupDistance = leg1['distance'];
       toPickupDuration = leg1['duration'];
-      totalDist += leg1['distValue'];
-      totalTime += leg1['timeValue'];
+      riderToPickupDist += leg1['distValue'];
+      riderToPickupTime += leg1['timeValue'];
     }
 
-    // Pickup → Drop1 → Drop2 → Drop3
+    // 2. Pickup → Drop1 → Drop2 → ... → Last Drop (Customer Journey)
     String previous = pickup;
     for (int i = 0; i < widget.dropLats.length; i++) {
       String dest = '${widget.dropLats[i]},${widget.dropLons[i]}';
       var leg = await _fetchLeg(previous, dest, apiKey);
       if (leg != null) {
-        allPoints.addAll(leg['points']);
+        if (i > 0) allPoints.addAll(leg['points'].skip(1)); // avoid duplicate points
+        else allPoints.addAll(leg['points']);
+
         dropDistances.add(leg['distance']);
         dropDurations.add(leg['duration']);
-        totalDist += leg['distValue'];
-        totalTime += leg['timeValue'];
+
+        // Customer ke liye add karo
+        customerJourneyDist += leg['distValue'];
+        customerJourneyTime += leg['timeValue'];
       }
       previous = dest;
     }
 
     if (mounted) {
       setState(() {
+        _polylines.clear();
         _polylines.add(Polyline(
           polylineId: const PolylineId('full_route'),
           points: allPoints,
@@ -1081,8 +476,16 @@ class _MapLiveScreenState extends State<MapLiveScreen> {
           width: 6,
         ));
 
-        totalDistance = '${(totalDist / 1000).toStringAsFixed(1)} km';
-        totalDuration = '${(totalTime / 60).toStringAsFixed(0)} min';
+        // Rider ke liye total (current location se last drop tak)
+        totalDistance = '${((riderToPickupDist + customerJourneyDist) / 1000).toStringAsFixed(1)} km';
+        totalDuration = '${((riderToPickupTime + customerJourneyTime) / 60).toStringAsFixed(0)} min';
+
+        // Customer ke liye (Pickup se Last Drop tak)
+        totalCustomerDistance = '${(customerJourneyDist / 1000).toStringAsFixed(1)} km';
+        totalCustomerDuration = customerJourneyTime < 60
+            ? '${customerJourneyTime.toInt()} sec'
+            : '${(customerJourneyTime / 60).toStringAsFixed(0)} min';
+
         _routePoints = allPoints;
       });
 
@@ -1092,7 +495,6 @@ class _MapLiveScreenState extends State<MapLiveScreen> {
       }
     }
   }
-
   Future<Map<String, dynamic>?> _fetchLeg(String origin, String dest, String key) async {
     final url = Uri.https('maps.googleapis.com', '/maps/api/directions/json', {
       'origin': origin,
@@ -1169,8 +571,11 @@ class _MapLiveScreenState extends State<MapLiveScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final customer = widget.deliveryData.customer!;
-    final senderName = '${customer.firstName ?? ''} ${customer.lastName ?? ''}'.trim();
+    final customer = widget.deliveryData.customer;
+
+    // Safely get image URL (fallback to empty string if null)
+    final customerImage = customer?.image ?? '';
+    final senderName = '${customer!.firstName ?? ''} ${customer.lastName ?? ''}'.trim();
     final dropLocations = widget.dropNames;
 
     return PopScope(
@@ -1184,97 +589,325 @@ class _MapLiveScreenState extends State<MapLiveScreen> {
             : Stack(
           children: [
             GoogleMap(
+              padding: EdgeInsets.only(top: 40.h, right: 16.w),
               initialCameraPosition: CameraPosition(target: _currentLatLng!, zoom: 14),
               onMapCreated: (c) => _mapController = c,
-              myLocationEnabled: true,
-              myLocationButtonEnabled: true,
+              myLocationEnabled: false,
+              myLocationButtonEnabled: false,
               markers: _markers,
               polylines: _polylines,
             ),
 
-            // Distance Info Card
-            // if (totalDistance != null)
-            //   Positioned(
-            //     top: 100.h,
-            //     left: 16.w,
-            //     right: 16.w,
-            //     child: Card(
-            //       child: Padding(
-            //         padding: EdgeInsets.all(12.w),
-            //         child: Column(
-            //           crossAxisAlignment: CrossAxisAlignment.start,
-            //           children: [
-            //             if (toPickupDistance != null)
-            //               Text("To Pickup: $toPickupDistance • $toPickupDuration"),
-            //             ...dropDistances.asMap().entries.map((e) => Padding(
-            //               padding: EdgeInsets.only(top: 4.h),
-            //               child: Text("Drop ${e.key + 1}: ${e.value} • ${dropDurations[e.key]}"),
-            //             )),
-            //             const Divider(),
-            //             Text("Total: $totalDistance • $totalDuration",
-            //                 style: GoogleFonts.inter(fontSize: 15.sp, fontWeight: FontWeight.bold)),
-            //           ],
-            //         ),
-            //       ),
-            //     ),
-            //   ),
 
-            // Bottom Card
+
+            DraggableScrollableSheet(
+              initialChildSize: 0.40,
+              minChildSize: 0.30,
+              maxChildSize: 0.75,
+              builder: (context, scrollController) {
+                return Container(
+                    decoration: BoxDecoration(
+                      color: Colors.white,
+                      borderRadius: BorderRadius.vertical(top: Radius.circular(20.r)),
+                      boxShadow: [BoxShadow(color: Colors.black12, blurRadius: 10)],
+                    ),
+                    child: ListView(
+                        controller: scrollController,
+                        padding: EdgeInsets.symmetric(horizontal: 20.w, vertical: 12.h),
+                        children: [
+                          Center(child: Container(width: 40.w, height: 5.h,
+                            decoration: BoxDecoration(
+                              borderRadius: BorderRadius.circular(10.r),
+                              color: Colors.grey[300],
+                            ),
+
+                          )),
+                          SizedBox(height: 10.h),
 
 
 
-            Positioned(
-              bottom: 20.h,
-              left: 16.w,
-              right: 16.w,
-              child: Card(
-                elevation: 12,
-                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16.r)),
-                child: Padding(
-                  padding: EdgeInsets.all(20.w),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(senderName, style: GoogleFonts.inter(fontSize: 18.sp, fontWeight: FontWeight.bold)),
-                      SizedBox(height: 8.h),
-                      Text("Pickup: ${widget.deliveryData.pickup?.name ?? 'Unknown'}"),
-                      ...dropLocations.asMap().entries.map((e) => Padding(
-                        padding: EdgeInsets.only(top: 4.h),
-                        child: Text("Drop ${e.key + 1}: ${e.value}"),
-                      )),
 
-                      SizedBox(height: 16.h),
+                          Row(
+                            children: [
 
-                      SizedBox(
-                        width: double.infinity,
-                        height: 50.h,
-                        child: ElevatedButton(
-                          style: ElevatedButton.styleFrom(backgroundColor: const Color(0xFF006970)),
-                          onPressed: () {
-                            Navigator.push(
-                              context,
-                              CupertinoPageRoute(
-                                builder: (context) => ProcessDropOffPage(txtid: widget.txtid),
+
+                              // CircleAvatar(
+                              //   radius: 30.r,
+                              //   backgroundColor: Colors.grey.shade200,
+                              //   child: ClipOval(
+                              //     child: CachedNetworkImage(
+                              //       imageUrl: customerImage,
+                              //       fit: BoxFit.cover,
+                              //       width: 60.r,
+                              //       height: 60.r,
+                              //       placeholder: (context, url) => CircularProgressIndicator(strokeWidth: 2),
+                              //       errorWidget: (context, url, error) => Icon(Icons.person, size: 30.r, color: Colors.grey),
+                              //     ),
+                              //   ),
+                              // ),
+
+
+                              CircleAvatar(
+                                radius: 30.r,
+                                backgroundColor: Colors.grey.shade200,
+                                child: ClipOval(
+                                  child: CachedNetworkImage(
+                                    imageUrl: customerImage, // safe: empty string if null
+                                    fit: BoxFit.cover,
+                                    width: 60.r,
+                                    height: 60.r,
+                                    placeholder: (context, url) => const Center(
+                                      child: CircularProgressIndicator(
+                                        strokeWidth: 2,
+                                      ),
+                                    ),
+                                    errorWidget: (context, url, error) => Icon(
+                                      Icons.person,
+                                      size: 30.r,
+                                      color: Colors.grey,
+                                    ),
+                                  ),
+                                ),
                               ),
-                            );
-                          },
-                          child: Text(
-                            "Complete Delivery",
-                            style: GoogleFonts.inter(fontSize: 16.sp, fontWeight: FontWeight.w600, color: Colors.white),
-                          ),
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-              ),
-            ),
+                              // CircleAvatar(radius: 25, backgroundImage: NetworkImage(vehicalImage)),
+                              SizedBox(width: 12.w),
 
+                              Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Text(senderName, style: GoogleFonts.inter(fontSize: 18.sp, fontWeight: FontWeight.bold)),
+                                  // Text('${vehicleTypeName}'  , style: GoogleFonts.inter(fontSize: 13.sp, color: Colors.grey[700])),
+                                  // Row(children: [Icon(Icons.star, color: Colors.amber, size: 16), Text(averageRating, style: TextStyle(fontSize: 13))]),
+                                ],
+                              ),
+
+
+                              const Spacer(),
+
+                              actionButton(
+                                  "assets/SvgImage/calld.svg",
+                                  widget.deliveryData.customer!.phone!)
+
+
+                            ],
+                          ),
+
+
+                          SizedBox(height: 10.h),
+
+
+                          Row(
+                            children: [
+                              const Icon(Icons.my_location, color: Colors.green),
+                              SizedBox(width: 10.w),
+                              Expanded(child: Text("Pickup: ${widget.deliveryData.pickup?.name ?? 'Unknown'}")),
+                            ],
+                          ),
+
+                          ...dropLocations.asMap().entries.map((e) => Padding(
+                            padding: EdgeInsets.only(top: 4.h),
+                            child: Text("Drop ${e.key + 1}: ${e.value}"),
+                          )),
+
+                          SizedBox(height: 16.h),
+
+
+                          SizedBox(height: 16.h),
+
+// Total Distance & Time Box
+                          Container(
+                            width: double.infinity,
+                            padding: EdgeInsets.all(16.r),
+                            decoration: BoxDecoration(
+                              color: const Color(0xFFF8FFFB),
+                              borderRadius: BorderRadius.circular(16.r),
+                              border: Border.all(color: const Color(0xFF00C853), width: 1.5),
+                              boxShadow: [
+                                BoxShadow(color: Colors.green.withOpacity(0.1), blurRadius: 10, offset: Offset(0, 4)),
+                              ],
+                            ),
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Text(
+                                  "Delivery Summary",
+                                  style: GoogleFonts.inter(
+                                    fontSize: 16.sp,
+                                    fontWeight: FontWeight.bold,
+                                    color: const Color(0xFF006970),
+                                  ),
+                                ),
+                                SizedBox(height: 10.h),
+
+                                // Rider ke liye
+                                Row(
+                                  children: [
+                                    Icon(Icons.directions_car, color: Colors.blue, size: 22.sp),
+                                    SizedBox(width: 10.w),
+                                    Text(
+                                      "Your Total Trip: ",
+                                      style: GoogleFonts.inter(fontSize: 14.sp, color: Colors.black87),
+                                    ),
+                                    Spacer(),
+                                    Text(
+                                      totalDistance ?? "Calculating...",
+                                      style: GoogleFonts.inter(
+                                        fontSize: 15.sp,
+                                        fontWeight: FontWeight.bold,
+                                        color: Colors.blue,
+                                      ),
+                                    ),
+                                  ],
+                                ),
+
+                                SizedBox(height: 8.h),
+
+                                Row(
+                                  children: [
+                                    Icon(Icons.access_time_filled, color: Colors.green[700], size: 22.sp),
+                                    SizedBox(width: 10.w),
+                                    Text(
+                                      "Estimated Time: ",
+                                      style: GoogleFonts.inter(fontSize: 14.sp, color: Colors.black87),
+                                    ),
+                                    Spacer(),
+                                    Text(
+                                      totalDuration ?? "Calculating...",
+                                      style: GoogleFonts.inter(
+                                        fontSize: 15.sp,
+                                        fontWeight: FontWeight.bold,
+                                        color: Colors.green[700]!,
+                                      ),
+                                    ),
+                                  ],
+                                ),
+
+                                Divider(height: 20.h, thickness: 1, color: Colors.grey[300]),
+
+                                // Customer ke liye
+                                Text(
+                                  "Customer Journey (Pickup → Last Drop)",
+                                  style: GoogleFonts.inter(fontSize: 13.sp, color: Colors.grey[700]),
+                                ),
+                                SizedBox(height: 6.h),
+                                Row(
+                                  children: [
+                                    Icon(Icons.route, color: Colors.purple, size: 20.sp),
+                                    SizedBox(width: 8.w),
+                                    Text(
+                                      "${totalCustomerDistance ?? "..."} km",
+                                      style: GoogleFonts.inter(fontSize: 15.sp, fontWeight: FontWeight.bold, color: Colors.purple),
+                                    ),
+                                    SizedBox(width: 20.w),
+                                    Icon(Icons.schedule, color: Colors.orange, size: 20.sp),
+                                    SizedBox(width: 8.w),
+                                    Text(
+                                      totalCustomerDuration ?? "...",
+                                      style: GoogleFonts.inter(fontSize: 15.sp, fontWeight: FontWeight.bold, color: Colors.orange[700]),
+                                    ),
+                                  ],
+                                ),
+                              ],
+                            ),
+                          ),
+
+                          SizedBox(height: 20.h),
+                          ElevatedButton.icon(
+                            onPressed: _openCustomerLiveTracking,
+                            icon: const Icon(Icons.navigation, color: Colors.white),
+                            label: const Text("Start Navigation",style: TextStyle(color: Colors.white),),
+                            style: ElevatedButton.styleFrom(
+                              backgroundColor: const Color(0xFF00C853),
+                              minimumSize: const Size(double.infinity, 50),
+                            ),
+                          ),
+                                    SizedBox(height: 16.h),
+
+                                    SizedBox(
+                                      width: double.infinity,
+                                      height: 50.h,
+                                      child: ElevatedButton(
+                                        style: ElevatedButton.styleFrom(backgroundColor: const Color(0xFF006970)),
+                                        onPressed: () {
+                                          Navigator.push(
+                                            context,
+                                            CupertinoPageRoute(
+                                              builder: (context) => ProcessDropOffPage(txtid: widget.txtid),
+                                            ),
+                                          );
+                                        },
+                                        child: Text(
+                                          "Complete Delivery",
+                                          style: GoogleFonts.inter(fontSize: 16.sp, fontWeight: FontWeight.w600, color: Colors.white),
+                                        ),
+                                      ),
+                                    ),
+                        ]) );
+              },
+            ),
 
 
           ],
         ),
       ),
     );
+  }
+
+
+
+  Widget actionButton(String icon,String phone ) {
+    return Column(
+      children: [
+        GestureDetector(
+          onTap: (){
+            _makePhoneCall(phone);
+          },
+          child: Container(
+            width: 45.w,
+            height: 45.h,
+            decoration: const BoxDecoration(
+              shape: BoxShape.circle,
+              color: Color(0xFFEEEDEF),
+            ),
+            child: Center(
+              child: SvgPicture.asset(icon, width: 18.w, height: 18.h),
+            ),
+          ),
+        ),
+        SizedBox(height: 6.h),
+
+      ],
+    );
+  }
+
+
+  Future<void> _openCustomerLiveTracking() async {
+    if (_currentLatLng == null || widget.dropLats.isEmpty) {
+      Fluttertoast.showToast(msg: "Loading location...");
+      return;
+    }
+
+    String waypoints = widget.pickupLat != null
+        ? '${widget.pickupLat},${widget.pickupLong}'
+        : '';
+
+    for (int i = 0; i < widget.dropLats.length - 1; i++) {
+      waypoints += '|${widget.dropLats[i]},${widget.dropLons[i]}';
+    }
+
+    final url = Uri.parse(
+      'https://www.google.com/maps/dir/?api=1'
+          '&origin=${_currentLatLng!.latitude},${_currentLatLng!.longitude}'
+          '&destination=${widget.dropLats.last},${widget.dropLons.last}'
+          '&waypoints=$waypoints'
+          '&travelmode=driving'
+          '&dir_action=navigate',
+    );
+
+    if (await canLaunchUrl(url)) {
+      await launchUrl(url, mode: LaunchMode.externalApplication);
+    } else {
+      Fluttertoast.showToast(msg: "Google Maps not installed");
+    }
   }
 }

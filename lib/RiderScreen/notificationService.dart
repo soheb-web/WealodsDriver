@@ -1,44 +1,33 @@
 
 
-import 'dart:typed_data';
-import 'package:audioplayers/audioplayers.dart';
+import 'dart:io';
+import 'package:flutter/services.dart';
 import 'package:vibration/vibration.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'home.page.dart';
 
-
 class NotificationService {
   static final NotificationService instance = NotificationService._internal();
-  factory NotificationService() => instance; // ← यही सिंगलटन देगा
+  factory NotificationService() => instance;
   NotificationService._internal();
 
   final FlutterLocalNotificationsPlugin _notificationsPlugin = FlutterLocalNotificationsPlugin();
-  final AudioPlayer _audioPlayer = AudioPlayer();
+  static const platform = MethodChannel('com.instantDriver/buzzer');
+
+  // Track karo buzzer chal raha hai ya nahi
+  static bool _isBuzzerActive = false;
 
   Future<void> init() async {
-    const AndroidInitializationSettings androidSettings = AndroidInitializationSettings('@mipmap/ic_launcher');
-    const DarwinInitializationSettings iosSettings = DarwinInitializationSettings(
-      requestAlertPermission: true,
-      requestBadgePermission: true,
-      requestSoundPermission: true,
-    );
-    const InitializationSettings settings = InitializationSettings(
-      android: androidSettings,
-      iOS: iosSettings,
-    );
+    const AndroidInitializationSettings android = AndroidInitializationSettings('@mipmap/ic_launcher');
+    await _notificationsPlugin.initialize(const InitializationSettings(android: android));
 
-    await _notificationsPlugin.initialize(settings);
-    final AndroidNotificationChannel channel = AndroidNotificationChannel(
+    final channel = AndroidNotificationChannel(
       'delivery_requests_channel',
       'Delivery Requests',
-      description: 'New delivery request alerts',
+      description: 'New delivery alerts',
       importance: Importance.max,
-      // priority: Priority.high,
-      playSound: true,
+      playSound: false,
       enableVibration: true,
-      vibrationPattern: Int64List.fromList(const [0, 1000, 500, 1000]),
-      // vibrationPattern: [0, 1000, 500, 1000], // Strong vibration
-      sound: const RawResourceAndroidNotificationSound('buzzer'), // buzzer.wav
     );
 
     await _notificationsPlugin
@@ -46,102 +35,78 @@ class NotificationService {
         ?.createNotificationChannel(channel);
   }
 
-  // Future<void> triggerDeliveryAlert(DeliveryRequest request) async {
-  //   // 1. Strong vibration
-  //   if (await Vibration.hasVibrator() ?? false) {
-  //     Vibration.vibrate(
-  //       pattern: [0, 800, 400, 800, 400, 800],
-  //       intensities: [255, 0, 255, 0, 255, 0],
-  //     );
-  //   }
-  //
-  //   // 2. HIGH PRIORITY NOTIFICATION with raw sound
-  //   final AndroidNotificationDetails androidDetails = AndroidNotificationDetails(
-  //     'delivery_requests_channel',
-  //     'Delivery Requests',
-  //     importance: Importance.max,
-  //     priority: Priority.max,  // ← जरूरी!
-  //     playSound: true,
-  //     sound: const RawResourceAndroidNotificationSound('buzzer'),
-  //     enableVibration: true,
-  //     vibrationPattern: Int64List.fromList([0, 800, 400, 800, 400, 800]),
-  //     ongoing: true,
-  //     autoCancel: false,
-  //     ticker: 'New Delivery Request!',
-  //     audioAttributesUsage: AudioAttributesUsage.alarm, // ← Alarm की तरह बजेगा
-  //     category: AndroidNotificationCategory.alarm,     // ← Do Not Disturb में भी बजेगा
-  //   );
-  //
-  //   const DarwinNotificationDetails iosDetails = DarwinNotificationDetails(
-  //     presentAlert: true,
-  //     presentBadge: true,
-  //     presentSound: true,
-  //     sound: 'buzzer.wav',
-  //   );
-  //
-  //   final NotificationDetails details = NotificationDetails(
-  //     android: androidDetails,
-  //     iOS: iosDetails,
-  //   );
-  //
-  //   await _notificationsPlugin.show(
-  //     999,
-  //     'New Delivery Request!',
-  //     'Recipient: ${request.recipient} | ${request.countdown}s left',
-  //     details,
-  //   );
-  // }
-
-
+  /// Jab bhi naya request aaye → buzzer restart hoga + countdown ke baad band
   Future<void> triggerDeliveryAlert(DeliveryRequest request) async {
-    // Vibration
+    // 1. Vibration (short burst)
+    // if (await Vibration.hasVibrator() ?? false) {
+    //   await Vibration.vibrate(
+    //     duration: 800,
+    //     intensity: 255,  // ← intensity (not intensities)
+    //   );
+    // }
     if (await Vibration.hasVibrator() ?? false) {
-      Vibration.vibrate(
-        pattern: [0, 800, 400, 800, 400, 800],
-        intensities: [255, 0, 255, 0, 255, 0],
-      );
+      await Vibration.vibrate(duration: 1200);
     }
-
-    // Notification with RAW sound
-    final AndroidNotificationDetails androidDetails = AndroidNotificationDetails(
-      'delivery_requests_channel',
-      'Delivery Requests',
-      importance: Importance.max,
-      priority: Priority.high,
-      playSound: true,
-      sound: const RawResourceAndroidNotificationSound('buzzer'), // .wav मत लिखो
-      enableVibration: true,
-      vibrationPattern: Int64List.fromList([0, 800, 400, 800]),
-      audioAttributesUsage: AudioAttributesUsage.alarm,
-      category: AndroidNotificationCategory.alarm,
-      ongoing: false,
-      autoCancel: true,
-    );
-
-    const DarwinNotificationDetails iosDetails = DarwinNotificationDetails(
-      presentAlert: true,
-      presentBadge: true,
-      presentSound: true,
-      sound: 'buzzer.wav',
-    );
-
+    // 2. Notification
     await _notificationsPlugin.show(
       999,
       'New Delivery Request!',
-      'Pickup: ${request.pickupName} → Drop: ${request.dropOffLocations}',
-      NotificationDetails(android: androidDetails, iOS: iosDetails),
+      'Pickup: ${request.pickupName} → ${request.dropOffLocations.join(" → ")}',
+      const NotificationDetails(
+        android: AndroidNotificationDetails(
+          'delivery_requests_channel',
+          'Delivery Requests',
+          importance: Importance.max,
+          priority: Priority.high,
+          playSound: false,
+          enableVibration: true,
+          fullScreenIntent: true,
+        ),
+      ),
     );
+
+    // 3. BUZZER LOGIC — HAR NAYE REQUEST PE FRESH START
+    if (Platform.isAndroid) {
+      try {
+        // Pehle jo bhi chal raha hai → band kar do
+        if (_isBuzzerActive) {
+          await platform.invokeMethod('stopBuzzer');
+        }
+
+        // Thoda gap do → driver ko naya order ka feel aaye
+        await Future.delayed(const Duration(milliseconds: 200));
+
+        // Ab naya buzzer shuru karo
+        await platform.invokeMethod('playBuzzer');
+        _isBuzzerActive = true;
+
+        // Countdown ke baad apne aap band kar do
+        Future.delayed(Duration(seconds: request.countdown), () async {
+          if (_isBuzzerActive) {
+            await stopBuzzer();
+          }
+        });
+      } catch (e) {
+        print("Buzzer error: $e");
+      }
+    }
   }
 
+  /// Accept / Reject / Expire / Reject All → Sab yahan se band hoga
+  Future<void> stopBuzzer() async {
+    if (!_isBuzzerActive) return;
 
-  void stopBuzzer() async {
-    await _audioPlayer.stop();
-    await _audioPlayer.dispose(); // ← पूरी तरह बंद कर दो
+    _isBuzzerActive = false;
+
     await Vibration.cancel();
-
-    // Notification भी हटाओ (अगर चाहो)
     await _notificationsPlugin.cancel(999);
 
-    print("BUZZER + VIBRATION + NOTIFICATION STOPPED!");
+    if (Platform.isAndroid) {
+      try {
+        await platform.invokeMethod('stopBuzzer');
+      } catch (e) {
+        print("Stop buzzer error: $e");
+      }
+    }
   }
 }

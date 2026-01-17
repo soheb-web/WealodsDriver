@@ -17,9 +17,9 @@ import '../../data/model/driverProfileModel.dart';
 import '../../data/model/saveDriverBodyModel.dart';
 part 'api.state.g.dart';
 
-@RestApi(baseUrl: "http://192.168.1.43:4567/api")
+@RestApi(baseUrl: "https://backend.weloads.live/api")
 
-// @RestApi(baseUrl: "https://weloads.com/api")
+// @RestApi(baseUrl: "https://backend.weloads.live/api")
 
 abstract class APIStateNetwork {
   factory APIStateNetwork(Dio dio, {String baseUrl}) = _APIStateNetwork;
@@ -83,9 +83,9 @@ abstract class APIStateNetwork {
   import '../../data/model/DeliveryResponseModel.dart'; // Assuming this model exists or needs to be created
   part 'api.state.g.dart';
 
-  @RestApi(baseUrl: "http://192.168.1.43:4567/api")
+  @RestApi(baseUrl: "https://backend.weloads.live/api")
 
-// @RestApi(baseUrl: "https://weloads.com/api")
+// @RestApi(baseUrl: "https://backend.weloads.live/api")
 
   abstract class APIStateNetwork {
   factory APIStateNetwork(Dio dio, {String baseUrl}) = _APIStateNetwork;
@@ -148,13 +148,16 @@ import 'package:dio/dio.dart';
 import 'package:retrofit/retrofit.dart';
 import '../../data/model/AddBodyVihileModel.dart';
 import '../../data/model/AddVihicleResponseModel.dart';
+import '../../data/model/ArrivedResponseModel.dart';
 import '../../data/model/DeliveryHistoryDataModel.dart';
 import '../../data/model/DeliveryHistoryResponseModel.dart';
 import '../../data/model/DeliveryOnGoingModel.dart';
+import '../../data/model/DriverArivedModel.dart';
 import '../../data/model/DriverCancelDeliveryBodyModel.dart';
 import '../../data/model/DriverCancelResponseModel.dart';
 import '../../data/model/DriverCompleteResponseModel.dart';
 import '../../data/model/DriverResponseModel.dart';
+import '../../data/model/GetTransactionListModel.dart';
 import '../../data/model/ImageBodyModel.dart';
 import '../../data/model/LoginResponseModel.dart';
 import '../../data/model/OtpResponseLoginModel.dart';
@@ -163,9 +166,13 @@ import '../../data/model/PickedModel.dart';
 import '../../data/model/RatingResponseModel.dart';
 import '../../data/model/RejectDeliveryBodyModel.dart';
 import '../../data/model/ReviewRatingRequest.dart';
+import '../../data/model/SelectVihicleResponseModel.dart';
 import '../../data/model/UpdateProfileBodyModel.dart';
 import '../../data/model/UploadImageResponseModel.dart';
 import '../../data/model/VihicleResponseModel.dart';
+import '../../data/model/VihicleSelectModel.dart';
+import '../../data/model/WithdrawBodyModel.dart';
+import '../../data/model/WithdrawRequestResponseModel.dart';
 import '../../data/model/completeBodyModel.dart';
 import '../../data/model/driverProfileModel.dart';
 import '../../data/model/rejectedResponseModel.dart';
@@ -175,13 +182,41 @@ import '../../data/model/updateUserResProfileModel.dart';
 
 part 'api.state.g.dart';
 
-// @RestApi(baseUrl: "https://weloads.com/api")
+// @RestApi(baseUrl: "https://backend.weloads.live/api")
 
-@RestApi(baseUrl: "http://192.168.1.43:4567/api")
+// @RestApi(baseUrl: "http://192.168.1.43:4567/api") // local url
+@RestApi(baseUrl: "https://backend.weloads.live/api")///julkar
 
+// @RestApi(baseUrl: "https://backend.weloads.live/api")
+// http://192.168.1.26:4567/
 
 abstract class APIStateNetwork {
   factory APIStateNetwork(Dio dio, {String baseUrl}) = _APIStateNetwork;
+
+
+  @POST("/v1/driver/updateVehicleStatus")
+  Future<SelectVicileResponse> updateVehicleStatus(
+      @Body() VihicleSelectModel body,
+      );
+
+
+  @POST("/v1/driver/withdrawRequest")
+  Future<WithdrawRequestResponseModel> withdrawRequest(
+      @Body() WithdrawBodyModel body,
+      );
+
+
+
+  @GET("/v1/driver/getTxList")
+  Future<TransactionListResponseModel> getTxList();
+
+
+
+  @POST("/v1/driver/driverArrived")
+  Future<ArrivedResponseModel> driverArrived(
+      @Body() DriverArivedModel body,
+      );
+
 
   // ✅ Delivery-related
   @GET("/v1/driver/getDeliveryById")

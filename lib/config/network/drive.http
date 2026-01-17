@@ -1,6 +1,6 @@
 @token = Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOiI2OGQyOTU1ZWRkNWMxYjUzMGFlYjhmZmYiLCJ1c2VyVHlwZSI6ImRyaXZlciIsImlhdCI6MTc1ODcxNDg0NiwiZXhwIjoxNzkwMjUwODQ2fQ.E_iTbxXaYYum_UU778b5Pxmva75wrVqSeIEQfeyL5Yw
 # @url =  http://localhost:4567
-@url =  http://192.168.1.43:4567
+@url =  https://backend.weloads.live
 
 //Register for client
 ###

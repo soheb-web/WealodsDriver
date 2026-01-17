@@ -44,7 +44,7 @@ mixin RegisterContorller<T extends StatefulWidget> on State<T> {
       cityId: cityId,
       deviceId: deviceId,
       refByCode: codeController.text,
-      password: passwordController.text,
+      // password: passwordController.text,
     );
     try {
       final service = APIStateNetwork(callDio());

@@ -10,27 +10,27 @@ String LoginBodyModelToJson(LoginBodyModel data) => json.encode(data.toJson());
 
 class LoginBodyModel {
   String loginType;
-  String password;
+  // String password;
   String deviceId;
 
 
   LoginBodyModel({
     required this.loginType,
-    required this.password,
+    // required this.password,
     required this.deviceId,
 
   });
 
   factory LoginBodyModel.fromJson(Map<String, dynamic> json) => LoginBodyModel(
     loginType: json["loginType"],
-    password: json["password"],
+    // password: json["password"],
     deviceId: json["deviceId"],
 
   );
 
   Map<String, dynamic> toJson() => {
     "loginType": loginType,
-    "password": password,
+    // "password": password,
     "deviceId": deviceId,
 
   };

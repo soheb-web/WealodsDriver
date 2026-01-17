@@ -451,7 +451,7 @@ import '../data/controller/getTicketListController.dart';
 // });
 
 class TicketDetailsPage extends ConsumerStatefulWidget {
-  final IO.Socket socket;
+  final IO.Socket? socket;
   final String id;
   const TicketDetailsPage(this.socket, {super.key, required this.id});
 
@@ -474,7 +474,7 @@ class _TicketDetailsPageState extends ConsumerState<TicketDetailsPage> {
       ref.invalidate(ticketDetailsController(widget.id));
       ref.refresh(ticketDetailsController(widget.id));
     });
-    socket = widget.socket;
+    socket = widget.socket!;
     // Socket setup
     if (socket.connected) {
       socket.emit("join_ticket", widget.id);

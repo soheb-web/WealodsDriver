@@ -30,7 +30,7 @@ class _RegisterPageState extends ConsumerState<RegisterPage> {
   final lastNameController = TextEditingController();
   final emailController = TextEditingController();
   final phoneNumberController = TextEditingController();
-  final passwordController = TextEditingController();
+  // final passwordController = TextEditingController();
   final codeController = TextEditingController();
 
   bool isCheckt = false;
@@ -106,7 +106,7 @@ class _RegisterPageState extends ConsumerState<RegisterPage> {
     lastNameController.dispose();
     emailController.dispose();
     phoneNumberController.dispose();
-    passwordController.dispose();
+    // passwordController.dispose();
     codeController.dispose();
     super.dispose();
   }
@@ -156,10 +156,10 @@ class _RegisterPageState extends ConsumerState<RegisterPage> {
       Fluttertoast.showToast(msg: 'Please enter Phone Number');
       return;
     }
-    if (passwordController.text.isEmpty) {
-      Fluttertoast.showToast(msg: 'Please enter Password');
-      return;
-    }
+    // if (passwordController.text.isEmpty) {
+    //   Fluttertoast.showToast(msg: 'Please enter Password');
+    //   return;
+    // }
     if (!isCheckt) {
       Fluttertoast.showToast(msg: 'Please agree to the Terms & Conditions');
       return;
@@ -175,7 +175,7 @@ class _RegisterPageState extends ConsumerState<RegisterPage> {
       cityId: cityId,
       deviceId: deviceToken,
       refByCode: codeController.text,
-      password: passwordController.text,
+      // password: passwordController.text,
     );
 
     try {
@@ -315,12 +315,12 @@ class _RegisterPageState extends ConsumerState<RegisterPage> {
                                 maxLength: 10,
                               ),
                               SizedBox(height: 24.h),
-                              _buildTextFormField(
-                                controller: passwordController,
-                                hint: "Password",
-                                obscureText: true,
-                              ),
-                              SizedBox(height: 24.h),
+                              // _buildTextFormField(
+                              //   controller: passwordController,
+                              //   hint: "Password",
+                              //   obscureText: true,
+                              // ),
+                              // SizedBox(height: 24.h),
 
                               /// City Dropdown
                               DropdownButtonFormField<Datum>(

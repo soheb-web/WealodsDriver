@@ -16,7 +16,7 @@ class RegisterBodyModel {
     String cityId;
     String deviceId;
     String refByCode;
-    String password;
+    // String password;
 
     RegisterBodyModel({
         required this.firstName,
@@ -26,7 +26,7 @@ class RegisterBodyModel {
         required this.cityId,
         required this.deviceId,
         required this.refByCode,
-        required this.password,
+        // required this.password,
     });
 
     factory RegisterBodyModel.fromJson(Map<String, dynamic> json) => RegisterBodyModel(
@@ -37,7 +37,7 @@ class RegisterBodyModel {
         cityId: json["cityId"],
         deviceId: json["deviceId"],
         refByCode: json["refByCode"],
-        password: json["password"],
+        // password: json["password"],
     );
 
     Map<String, dynamic> toJson() => {
@@ -48,7 +48,7 @@ class RegisterBodyModel {
         "cityId": cityId,
         "deviceId": deviceId,
         "refByCode": refByCode,
-        "password": password,
+        // "password": password,
     };
 }
 

@@ -61,6 +61,7 @@ class _LocationEnablePageState extends State<LocationEnablePage> {
         MaterialPageRoute(builder: (context) => HomePage(0)),
         (route) => false,
       );
+
     } catch (e) {
       Fluttertoast.showToast(msg: "Failed to get location: $e");
     } finally {

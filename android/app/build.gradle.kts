@@ -31,18 +31,18 @@ android {
         versionName = flutter.versionName
     }
 
-    buildTypes {
-        release {
-            // TODO: Add your own signing config for the release build.
-            // Signing with the debug keys for now, so `flutter run --release` works.
-            signingConfig = signingConfigs.getByName("debug")
-        }
-    }
+//    buildTypes {
+//        release {
+//            // TODO: Add your own signing config for the release build.
+//            // Signing with the debug keys for now, so `flutter run --release` works.
+//            signingConfig = signingConfigs.getByName("debug")
+//        }
+//    }
 
 
- /*   signingConfigs {
+    signingConfigs {
         create("release") {
-            storeFile = file("c:\\Users\\a2z\\Downloads\\INSTANT\\delivery-app-rider-side\\InstantDriver.jks")
+            storeFile = file("c:\\Users\\a2z\\Downloads\\soheb-Globally\\INSTANT\\delivery-app-rider-side\\InstantDriver.jks")
             storePassword = "123456"
             keyAlias = "InstantDriver"
             keyPassword = "123456"
@@ -56,7 +56,7 @@ android {
             proguardFiles(getDefaultProguardFile("proguard-android-optimize.txt"), "proguard-rules.pro")
             signingConfig = signingConfigs.getByName("release")
         }
-    }*/
+    }
 
 }
 

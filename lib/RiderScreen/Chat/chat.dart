@@ -8,7 +8,6 @@ import 'package:hive/hive.dart';
 
 final box = Hive.box('folder');
 final String? currentUserId = box.get('id');
-// final String currentUserType = box.get('userType') ?? 'customer'; // ← customer or driver
 
 final String currentUserType = 'driver'; // ← customer or driver
 class ChatingPage extends ConsumerStatefulWidget {
@@ -212,9 +211,9 @@ class _ChatingPageState extends ConsumerState<ChatingPage> {
                             style: GoogleFonts.inter(fontSize: 14.sp, fontWeight: FontWeight.w500, color: const Color(0xff2FAF0F))),
                       ],
                     ),
-                    const Spacer(),
-                    IconButton(icon: const Icon(Icons.call_outlined), onPressed: () {}),
-                    IconButton(icon: const Icon(Icons.videocam_outlined), onPressed: () {}),
+                    // const Spacer(),
+                    // IconButton(icon: const Icon(Icons.call_outlined), onPressed: () {}),
+                    // IconButton(icon: const Icon(Icons.videocam_outlined), onPressed: () {}),
                   ],
                 ),
               ),
@@ -246,8 +245,9 @@ class _ChatingPageState extends ConsumerState<ChatingPage> {
       ),
 
       bottomSheet: Container(
+        // margin: EdgeInsets.only(bottom: 40.h),
         color: Colors.white,
-        padding: EdgeInsets.fromLTRB(20.w, 13.h, 20.w, 13.h),
+        padding: EdgeInsets.only(bottom: 40.h),
         child: Row(
           children: [
             Expanded(

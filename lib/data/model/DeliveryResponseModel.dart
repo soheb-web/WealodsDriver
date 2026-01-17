@@ -36,64 +36,7 @@ class DeliveryResponseModel {
   };
 }
 
-// class Data {
-//   Dropoff? pickup;
-//   Dropoff? dropoff;
-//   PackageDetails? packageDetails;
-//   String? id;
-//   Customer? customer;
-//   String? deliveryBoy;
-//   int? userPayAmount;
-//   String? status;
-//   String? paymentMethod;
-//   String? txId;
-//   int? createdAt;
-//
-//   Data({
-//     this.pickup,
-//     this.dropoff,
-//     this.packageDetails,
-//     this.id,
-//     this.customer,
-//     this.deliveryBoy,
-//     this.userPayAmount,
-//     this.status,
-//     this.paymentMethod,
-//     this.txId,
-//     this.createdAt,
-//   });
-//
-//   factory Data.fromJson(Map<String, dynamic> json) => Data(
-//     pickup: json["pickup"] == null ? null : Dropoff.fromJson(json["pickup"]),
-//     dropoff: json["dropoff"] == null ? null : Dropoff.fromJson(json["dropoff"]),
-//     packageDetails: json["packageDetails"] == null ? null : PackageDetails.fromJson(json["packageDetails"]),
-//     id: json["_id"],
-//     customer: json["customer"] == null ? null : Customer.fromJson(json["customer"]),
-//     deliveryBoy: json["deliveryBoy"],
-//     userPayAmount: json["userPayAmount"],
-//     status: json["status"],
-//     paymentMethod: json["paymentMethod"],
-//     txId: json["txId"],
-//     createdAt: json["createdAt"],
-//   );
-//
-//   Map<String, dynamic> toJson() => {
-//     "pickup": pickup?.toJson(),
-//     "dropoff": dropoff?.toJson(),
-//     "packageDetails": packageDetails?.toJson(),
-//     "_id": id,
-//     "customer": customer?.toJson(),
-//     "deliveryBoy": deliveryBoy,
-//     "userPayAmount": userPayAmount,
-//     "status": status,
-//     "paymentMethod": paymentMethod,
-//     "txId": txId,
-//     "createdAt": createdAt,
-//   };
-// }
 
-
-// delivery_response_model.dart
 
 class Data {
   Dropoff? pickup;
@@ -105,6 +48,10 @@ class Data {
   int? userPayAmount;
   String? status;
   String? paymentMethod;
+  int? freeWaitingTime;
+  int? totalWaitingTime;
+  int? extraWaitingMinutes;
+  int? extraWaitingCharge;
   String? txId;
   int? createdAt;
 
@@ -118,6 +65,10 @@ class Data {
     this.userPayAmount,
     this.status,
     this.paymentMethod,
+    this.freeWaitingTime,
+    this.totalWaitingTime,
+    this.extraWaitingMinutes,
+    this.extraWaitingCharge,
     this.txId,
     this.createdAt,
   });
@@ -134,6 +85,10 @@ class Data {
     userPayAmount: json["userPayAmount"],
     status: json["status"],
     paymentMethod: json["paymentMethod"],
+    freeWaitingTime: json["freeWaitingTime"],
+    totalWaitingTime: json["totalWaitingTime"],
+    extraWaitingMinutes: json["extraWaitingMinutes"],
+    extraWaitingCharge: json["extraWaitingCharge"],
     txId: json["txId"],
     createdAt: json["createdAt"],
   );
@@ -148,6 +103,10 @@ class Data {
     "userPayAmount": userPayAmount,
     "status": status,
     "paymentMethod": paymentMethod,
+    "freeWaitingTime": freeWaitingTime,
+    "totalWaitingTime": totalWaitingTime,
+    "extraWaitingMinutes": extraWaitingMinutes,
+    "extraWaitingCharge": extraWaitingCharge,
     "txId": txId,
     "createdAt": createdAt,
   };

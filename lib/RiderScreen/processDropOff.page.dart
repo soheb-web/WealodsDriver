@@ -289,44 +289,6 @@ class _ProcessDropOffPageState extends State<ProcessDropOffPage> {
     );
   }
 
-  // Future<void> deliveryComplete() async {
-  //   setState(() => isUploading = true);
-  //   try {
-  //     final dio = callDio(); // Dio with PrettyDioLogger
-
-  //     // Prepare FormData
-  //     final formData = FormData.fromMap({
-  //       "txId": widget.txtid,
-  //       "image": await MultipartFile.fromFile(
-  //         image!.path,
-  //         filename: image!.path.split('/').last,
-  //       ),
-  //     });
-
-  //     // POST request
-  //     final response = await dio.post(
-  //       "http://192.168.1.43:4567/api/v1/driver/deliveryCompleted",
-  //       data: formData,
-  //     );
-
-  //     if (response.statusCode == 200) {
-  //       Fluttertoast.showToast(msg: "Delivery Complete");
-  //       Navigator.pushReplacement(
-  //         context,
-  //         CupertinoPageRoute(builder: (_) => CompletePage()),
-  //       );
-  //     } else {
-  //       Fluttertoast.showToast(msg: "Failed: ${response.data}");
-  //     }
-  //   } catch (e, st) {
-  //     log(e.toString());
-  //     log(st.toString());
-  //     Fluttertoast.showToast(msg: "Something went wrong!");
-  //   } finally {
-  //     setState(() => isUploading = false);
-  //   }
-  // }
-
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -415,6 +377,7 @@ class _ProcessDropOffPageState extends State<ProcessDropOffPage> {
               ),
             ),
           ),
+          
           SizedBox(height: 30.h),
           Center(
             child: ElevatedButton(
@@ -441,21 +404,27 @@ class _ProcessDropOffPageState extends State<ProcessDropOffPage> {
                   final service = APIStateNetwork(callDio());
                   final response = await service.deliveryCompelte(body);
                   if (response.code == 0) {
-                    Fluttertoast.showToast(msg: response.message);
+                    Fluttertoast.showToast(msg: response.message??"");
+
                     Navigator.push(
                       context,
                       CupertinoPageRoute(
                         builder: (context) => CompletePage(
-                          userPayAmmount: response.data.userPayAmount
-                              .toString(),
+                          previousAmount: response.data!.previousAmount!,
+                          extraWaitingMinutes: response.data!.extraWaitingMinutes!,
+                          extraWaitingCharge: response.data!.extraWaitingCharge!,
+                          freeWaitingTime: response.data!.freeWaitingTime!,
+
                         ),
                       ),
                     );
+
                     setState(() {
                       isUploading = false;
                     });
+
                   } else {
-                    Fluttertoast.showToast(msg: response.message);
+                    Fluttertoast.showToast(msg: response.message??"");
                     setState(() {
                       isUploading = false;
                     });
@@ -487,6 +456,7 @@ class _ProcessDropOffPageState extends State<ProcessDropOffPage> {
                   color: Colors.white,
                 ),
               ),
+              
             ),
           ),
         ],
@@ -494,3 +464,17 @@ class _ProcessDropOffPageState extends State<ProcessDropOffPage> {
     );
   }
 }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
