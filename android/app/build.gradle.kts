@@ -51,9 +51,9 @@ android {
 
     buildTypes {
         getByName("release") {
-            isMinifyEnabled = true // Enable minification
-            isShrinkResources = true // Enable resource shrinking
-            proguardFiles(getDefaultProguardFile("proguard-android-optimize.txt"), "proguard-rules.pro")
+            isMinifyEnabled = false // Enable minification
+            isShrinkResources = false // Enable resource shrinking
+//            proguardFiles(getDefaultProguardFile("proguard-android-optimize.txt"), "proguard-rules.pro")
             signingConfig = signingConfigs.getByName("release")
         }
     }

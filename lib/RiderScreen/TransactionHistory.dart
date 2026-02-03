@@ -1,13 +1,11 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_riverpod/flutter_riverpod.dart'; // Assuming you're using flutter_riverpod
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
+
 import '../data/controller/GetTransactionHistoryController.dart';
-import '../data/controller/getProfileController.dart'; // Add this package for date formatting: intl: ^0.19.0 (pubspec.yaml mein add karo)
+import '../data/model/GetTransactionListModel.dart'; // ← yeh file jo maine last mein di thi
 
-
-
-
-class TransactionHistoryPage extends ConsumerWidget { // Changed to ConsumerWidget for riverpod
+class TransactionHistoryPage extends ConsumerWidget {
   const TransactionHistoryPage({super.key});
 
   @override
@@ -28,11 +26,13 @@ class TransactionHistoryPage extends ConsumerWidget { // Changed to ConsumerWidg
       body: RefreshIndicator(
         onRefresh: () => ref.refresh(getTransactionController.future),
         color: const Color(0xFF006970),
-        child: transactionAsync.when(
-          data: (response) {
-            final transactions = response.data ?? [];
+        child:
 
-            if (transactions.isEmpty) {
+        transactionAsync.when(
+          data: (response) {
+            final allTx = response.transactions; // ← yeh helper use kar rahe hain
+
+            if (allTx!.isEmpty) {
               return const Center(
                 child: Column(
                   mainAxisAlignment: MainAxisAlignment.center,
@@ -50,44 +50,54 @@ class TransactionHistoryPage extends ConsumerWidget { // Changed to ConsumerWidg
 
             return ListView.builder(
               padding: const EdgeInsets.all(12),
-              itemCount: transactions.length,
+              itemCount: allTx.length,
               itemBuilder: (context, index) {
-                final tx = transactions[index];
-                final isCredit = (tx.txType?.toLowerCase() == 'credit' ||
-                    (tx.amount ?? 0) > 0); // Adjust logic based on your txType
+                final tx = allTx[index];
+
+                final isCredit = _isCreditTransaction(tx);
 
                 final amount = tx.amount ?? 0;
+                final displayAmount = amount.abs();
                 final formattedAmount = NumberFormat.currency(
                   locale: 'en_IN',
                   symbol: '₹',
                   decimalDigits: 0,
-                ).format(amount.abs());
+                ).format(displayAmount);
 
                 final date = tx.createdAt != null
                     ? DateTime.fromMillisecondsSinceEpoch(tx.createdAt!)
                     : DateTime.now();
-                final formattedDate = DateFormat('dd MMM yyyy, hh:mm a').format(date);
+                final formattedDate =
+                DateFormat('dd MMM yyyy, hh:mm a').format(date);
+
+                final statusColor = _getStatusColor(tx.status);
+                final statusBg = _getStatusBackground(tx.status);
 
                 return Card(
                   margin: const EdgeInsets.only(bottom: 12),
-                  elevation: 2,
-                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+                  elevation: 1.5,
+                  shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(16)),
                   child: ListTile(
-                    contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                    contentPadding: const EdgeInsets.symmetric(
+                        horizontal: 16, vertical: 10),
                     leading: CircleAvatar(
-                      backgroundColor: isCredit ? Colors.green[100] : Colors.red[100],
+                      backgroundColor:
+                      isCredit ? Colors.green[50] : Colors.red[50],
                       radius: 28,
                       child: Icon(
-                        isCredit ? Icons.arrow_upward_rounded : Icons.arrow_downward_rounded,
-                        color: isCredit ? Colors.green[800] : Colors.red[800],
-                        size: 28,
+                        isCredit
+                            ? Icons.arrow_circle_up_rounded
+                            : Icons.arrow_circle_down_rounded,
+                        color: isCredit ? Colors.green[700] : Colors.red[700],
+                        size: 32,
                       ),
                     ),
                     title: Text(
                       '${isCredit ? '+' : '-'} $formattedAmount',
                       style: TextStyle(
-                        fontSize: 18,
-                        fontWeight: FontWeight.bold,
+                        fontSize: 19,
+                        fontWeight: FontWeight.w700,
                         color: isCredit ? Colors.green[800] : Colors.red[800],
                       ),
                     ),
@@ -96,41 +106,40 @@ class TransactionHistoryPage extends ConsumerWidget { // Changed to ConsumerWidg
                       children: [
                         const SizedBox(height: 4),
                         Text(
-                          tx.txType?.toUpperCase() ?? 'Transaction',
+                          _getDisplayType(tx.txType),
                           style: TextStyle(
                             fontSize: 14,
-                            color: Colors.grey[700],
+                            color: Colors.grey[800],
                             fontWeight: FontWeight.w500,
                           ),
                         ),
                         const SizedBox(height: 4),
                         Text(
                           formattedDate,
-                          style: TextStyle(fontSize: 12, color: Colors.grey[600]),
+                          style:
+                          TextStyle(fontSize: 12, color: Colors.grey[600]),
                         ),
-                        if (tx.razorpayOrderId != null && tx.razorpayOrderId!.isNotEmpty)
+                        if (tx.razorpayOrderId?.isNotEmpty ?? false)
                           Text(
                             'Order: ${tx.razorpayOrderId}',
-                            style: TextStyle(fontSize: 12, color: Colors.grey[500]),
+                            style: TextStyle(
+                                fontSize: 11.5, color: Colors.grey[500]),
                           ),
                       ],
                     ),
                     trailing: Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+                      padding: const EdgeInsets.symmetric(
+                          horizontal: 12, vertical: 6),
                       decoration: BoxDecoration(
-                        color: tx.status?.toLowerCase() == 'success'
-                            ? Colors.green[50]
-                            : Colors.orange[50],
+                        color: statusBg,
                         borderRadius: BorderRadius.circular(12),
                       ),
                       child: Text(
-                        tx.status?.toUpperCase() ?? 'PENDING',
+                        _getStatusText(tx.status),
                         style: TextStyle(
                           fontSize: 12,
-                          fontWeight: FontWeight.bold,
-                          color: tx.status?.toLowerCase() == 'success'
-                              ? Colors.green[800]
-                              : Colors.orange[800],
+                          fontWeight: FontWeight.w600,
+                          color: statusColor,
                         ),
                       ),
                     ),
@@ -151,7 +160,7 @@ class TransactionHistoryPage extends ConsumerWidget { // Changed to ConsumerWidg
                 const Icon(Icons.error_outline, size: 60, color: Colors.red),
                 const SizedBox(height: 16),
                 Text('Error: $error'),
-                const SizedBox(height: 8),
+                const SizedBox(height: 12),
                 ElevatedButton(
                   onPressed: () => ref.refresh(getTransactionController),
                   style: ElevatedButton.styleFrom(
@@ -166,5 +175,70 @@ class TransactionHistoryPage extends ConsumerWidget { // Changed to ConsumerWidg
         ),
       ),
     );
+  }
+
+  // ────────────────────────────────────────────────
+  // Helper functions (txType aur status String hain ab)
+  // ────────────────────────────────────────────────
+
+  bool _isCreditTransaction(Transaction tx) {
+    final type = tx.txType?.toLowerCase() ?? '';
+    if (type == 'deposit') return true;
+    if (type == 'withdraw') return false;
+    if (type == 'wallet_transfer') {
+      // receiver ke perspective se mostly credit
+      return true;
+    }
+    return (tx.amount ?? 0) > 0;
+  }
+
+  String _getDisplayType(String? txType) {
+    final type = txType?.toLowerCase() ?? '';
+    switch (type) {
+      case 'deposit':
+        return 'Deposit';
+      case 'withdraw':
+        return 'Withdrawal';
+      case 'wallet_transfer':
+        return 'Wallet Transfer';
+      default:
+        return 'Transaction';
+    }
+  }
+
+  String _getStatusText(String? status) {
+    final s = status?.toLowerCase() ?? '';
+    switch (s) {
+      case 'completed':
+        return 'COMPLETED';
+      case 'pending':
+        return 'PENDING';
+      default:
+        return 'UNKNOWN';
+    }
+  }
+
+  Color _getStatusColor(String? status) {
+    final s = status?.toLowerCase() ?? '';
+    switch (s) {
+      case 'completed':
+        return Colors.green[800]!;
+      case 'pending':
+        return Colors.orange[800]!;
+      default:
+        return Colors.grey[800]!;
+    }
+  }
+
+  Color _getStatusBackground(String? status) {
+    final s = status?.toLowerCase() ?? '';
+    switch (s) {
+      case 'completed':
+        return Colors.green[50]!;
+      case 'pending':
+        return Colors.orange[50]!;
+      default:
+        return Colors.grey[100]!;
+    }
   }
 }

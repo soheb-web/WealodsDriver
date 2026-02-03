@@ -149,6 +149,9 @@ import 'package:retrofit/retrofit.dart';
 import '../../data/model/AddBodyVihileModel.dart';
 import '../../data/model/AddVihicleResponseModel.dart';
 import '../../data/model/ArrivedResponseModel.dart';
+import '../../data/model/CommisionModel.dart';
+import '../../data/model/CreateOrderModel.dart';
+import '../../data/model/CreateOrderResponseModel.dart';
 import '../../data/model/DeliveryHistoryDataModel.dart';
 import '../../data/model/DeliveryHistoryResponseModel.dart';
 import '../../data/model/DeliveryOnGoingModel.dart';
@@ -163,6 +166,7 @@ import '../../data/model/LoginResponseModel.dart';
 import '../../data/model/OtpResponseLoginModel.dart';
 import '../../data/model/OtpResponseResisterModel.dart';
 import '../../data/model/PickedModel.dart';
+import '../../data/model/QrTransactionHistoryModel.dart';
 import '../../data/model/RatingResponseModel.dart';
 import '../../data/model/RejectDeliveryBodyModel.dart';
 import '../../data/model/ReviewRatingRequest.dart';
@@ -184,8 +188,14 @@ part 'api.state.g.dart';
 
 // @RestApi(baseUrl: "https://backend.weloads.live/api")
 
+
 // @RestApi(baseUrl: "http://192.168.1.43:4567/api") // local url
+
 @RestApi(baseUrl: "https://backend.weloads.live/api")///julkar
+
+//    @RestApi(baseUrl: "http://192.168.1.22:4567/api")///julkar
+//    @RestApi(baseUrl: "http://192.168.1.43:4567/api")///julkar
+
 
 // @RestApi(baseUrl: "https://backend.weloads.live/api")
 // http://192.168.1.26:4567/
@@ -207,8 +217,25 @@ abstract class APIStateNetwork {
 
 
 
+  @POST("/v1/driver/createOrder")
+  Future<CreateOrderResponseModel> createOrder(
+      @Body() CreateOrderModel body,
+      );
+
+
   @GET("/v1/driver/getTxList")
   Future<TransactionListResponseModel> getTxList();
+
+
+
+
+  @POST("/v1/driver/getWalletTransactions")
+  Future<QrTransactionHistoryModel> getWalletTransactions();
+
+
+
+  @POST("/v1/driver/getCommissions")
+  Future<CommissionModel> getCommissions();
 
 
 

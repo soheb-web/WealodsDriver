@@ -121,16 +121,18 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
-import 'package:hive/hive.dart';
 import 'package:hive_flutter/hive_flutter.dart';
 import 'RiderScreen/LocationEnablePage.dart';
 import 'RiderScreen/firbaseoption.dart';
 import 'RiderScreen/notificationService.dart';
+import 'RiderScreen/notificationservice1.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
+  await NotificationService1().init();
   await NotificationService.instance.init();
+
   // Initialize Hive
   try {
     await Hive.initFlutter();
@@ -145,7 +147,6 @@ void main() async {
 
 class MyApp extends StatelessWidget {
   const MyApp({super.key});
-
   Future<void> getToken() async {
     // Permission request करें (iOS/Android पर जरूरी)
     NotificationSettings settings = await FirebaseMessaging.instance
@@ -174,15 +175,11 @@ class MyApp extends StatelessWidget {
     // });
     print('FCM Token: $token'); // Console में print होगा
   }
-
   @override
   Widget build(BuildContext context) {
-
-
     getToken();
     var box = Hive.box("userdata");
     var PrintToken = box.get("token");
-
     //log(PrintToken);
     return AnnotatedRegion<SystemUiOverlayStyle>(
       value: const SystemUiOverlayStyle(
@@ -198,7 +195,7 @@ class MyApp extends StatelessWidget {
           return MaterialApp(
             navigatorKey: navigatorKey,
             debugShowCheckedModeBanner: false,
-            title: 'Flutter Demo',
+            title: 'Weloads Partner',
             theme: ThemeData(
               colorScheme: ColorScheme.fromSeed(seedColor: Colors.deepPurple),
             ),
@@ -236,10 +233,7 @@ class MyApp extends StatelessWidget {
         },
       ),
     );
-
-
   }
-
   Future<String?> _getToken() async {
     await Future.delayed(const Duration(seconds: 1));
     final box = Hive.box('userdata');

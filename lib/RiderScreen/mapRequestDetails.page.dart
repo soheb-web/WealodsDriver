@@ -106,7 +106,7 @@ class _MapRequestDetailsPageState extends State<MapRequestDetailsPage> {
   }
   int _maxFreeWaitingSeconds = 300; // डिफ़ॉल्ट 5 मिनट (fallback)
   DateTime? _localArrivedAt; // Jab driver ne button dabaya tab ka time
-  @override
+/*  @override
   void initState() {
     super.initState();
     _getCurrentLocation();
@@ -158,7 +158,7 @@ class _MapRequestDetailsPageState extends State<MapRequestDetailsPage> {
 
         // ... your existing arrived logic
       }
-      else if (data is Map && data["status"] == "cancelled_by_user") {
+      else if ( data["status"] == "cancelled_by_customer") {
         Navigator.pushAndRemoveUntil(
           context,
           CupertinoPageRoute(
@@ -171,7 +171,130 @@ class _MapRequestDetailsPageState extends State<MapRequestDetailsPage> {
         );
       }
     });
+  }*/
+
+  @override
+  void initState() {
+    super.initState();
+
+    _getCurrentLocation();
+    _socket = widget.socket!;
+    _fetchDeliveryData();
+    _emitDriverPicked();
+    _createNumberIcons();
+
+    loadSimpleDriverIcon().then((_) {
+      if (mounted) setState(() {});
+    });
+
+    // ────────────────────────────────────────────────
+    // 1. Request current delivery status (handles reconnects, app resume, etc.)
+    // 2. Also listen for live updates
+    // ────────────────────────────────────────────────
+    _requestCurrentDeliveryStatus();
+
+    _socket.on("delivery:status_update", _handleDeliveryStatusUpdate);
   }
+
+// ────────────────────────────────────────────────────────────────
+// Separate method → cleaner, easier to test & maintain
+// ────────────────────────────────────────────────────────────────
+  void _requestCurrentDeliveryStatus() {
+    if (!_socket.connected) {
+      log("Socket not connected → cannot request status yet");
+      return;
+    }
+
+    final payload = {
+      "deliveryId": widget.deliveryData.id,
+      // Optional: "requestFrom": "driver_app", etc.
+    };
+
+    _socket.emit("delivery:request_status", payload);
+    log("Emitted delivery:request_status for deliveryId: ${widget.deliveryData.id}");
+  }
+
+  void _handleDeliveryStatusUpdate(dynamic rawData) {
+    if (rawData == null || rawData is! Map<String, dynamic>) {
+      log("Invalid delivery:status_update payload: $rawData");
+      return;
+    }
+
+    final data = rawData;
+    final status = data['status']?.toString()?.toLowerCase();
+
+    log("Socket → delivery:status_update | status: $status | data: $data");
+
+    if (status == "arrived") {
+      // ────────────────────────────────────────────────
+      // Parse free waiting minutes (usually 5, but configurable)
+      // ────────────────────────────────────────────────
+      int freeMinutes = 5;
+      final waitingTimeRaw = data['waitingTime'];
+      if (waitingTimeRaw != null) {
+        freeMinutes = int.tryParse(waitingTimeRaw.toString()) ?? 5;
+      }
+
+      // ────────────────────────────────────────────────
+      // Calculate how many seconds have already passed since arrival
+      // ────────────────────────────────────────────────
+      int elapsedSeconds = 0;
+      final arrivedAtRaw = data['arrivedAt'];
+
+      if (arrivedAtRaw != null) {
+        final serverTsMs = int.tryParse(arrivedAtRaw.toString()) ?? 0;
+        if (serverTsMs > 0) {
+          final nowMs = DateTime.now().millisecondsSinceEpoch;
+          elapsedSeconds = ((nowMs - serverTsMs) / 1000).floor();
+
+          // Protect against unrealistic values (clock skew, late packets, etc.)
+          final maxReasonableSeconds = freeMinutes * 60 + 600; // +10 min grace
+          if (elapsedSeconds < 0 || elapsedSeconds > maxReasonableSeconds) {
+            log("Warning: unrealistic elapsedSeconds ($elapsedSeconds) → resetting to 0");
+            elapsedSeconds = 0;
+          }
+        }
+      }
+
+      log("Arrived sync | free: $freeMinutes min | elapsed: $elapsedSeconds sec");
+
+      _startOrSyncWaitingTimer(
+        fromSeconds: elapsedSeconds,
+        freeMinutes: freeMinutes,
+      );
+
+      // Optional: update UI flags
+      // if (mounted) setState(() { isArrived = true; });
+    }
+    else if (status == "cancelled_by_customer") {
+      log("Delivery cancelled by customer → redirecting to home");
+
+      if (!mounted) return;
+
+      Navigator.pushAndRemoveUntil(
+        context,
+        CupertinoPageRoute(
+          builder: (_) => HomePage(
+            0,
+            forceSocketRefresh: true,
+          ),
+        ),
+            (route) => route.isFirst,
+      );
+    }
+    // Add other statuses if needed: picked_up, completed, etc.
+  }
+
+// Important: Don't forget to remove listener when widget is disposed!
+/*  @override
+  void dispose() {
+    _socket.off("delivery:status_update", _handleDeliveryStatusUpdate);
+    // Also cancel any running timers here if not already done
+    super.dispose();
+  }*/
+
+
+
   @override
   void dispose() {
     _waitingTimer?.cancel();

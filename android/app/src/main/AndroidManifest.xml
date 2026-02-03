@@ -15,7 +15,7 @@
 
     <application
         android:usesCleartextTraffic="true"
-        android:label="delivery_rider_app"
+        android:label="Weloads Partner"
         android:name="${applicationName}"
         android:icon="@mipmap/ic_launcher">
         <activity
