@@ -85,6 +85,7 @@ class _MapRequestDetailsPageState extends State<MapRequestDetailsPage> {
     _waitingTimeText =
         "${mins.toString().padLeft(2, '0')}:${secs.toString().padLeft(2, '0')}";
   }
+
   void _startWaitingTimerFromSeconds(int startSeconds) {
     if (!mounted) return;
     setState(() {
@@ -104,74 +105,9 @@ class _MapRequestDetailsPageState extends State<MapRequestDetailsPage> {
       });
     });
   }
+
   int _maxFreeWaitingSeconds = 300; // डिफ़ॉल्ट 5 मिनट (fallback)
   DateTime? _localArrivedAt; // Jab driver ne button dabaya tab ka time
-/*  @override
-  void initState() {
-    super.initState();
-    _getCurrentLocation();
-    _socket = widget.socket!;
-    _fetchDeliveryData();
-    _emitDriverPicked();
-    _createNumberIcons();
-    loadSimpleDriverIcon().then((_) {
-      if (mounted) setState(() {});
-    });
-
-    final payload = {"deliveryId": widget.deliveryData.id};
-    _socket.emit("delivery:status_update", payload);
-    _socket.on("delivery:status_update", (data) {
-      log("Socket Event: $data");
-
-      if (data is Map && data["status"] == "arrived") {
-
-
-        final waitingTime =
-                data["waitingTime"]; // ← Ye minutes mein aata hai (2, 4, 7, 10 etc)
-            final arrivedAt = data["arrivedAt"];
-            int freeMinutes = 5; // fallback
-            if (waitingTime != null) {
-              freeMinutes = int.tryParse(waitingTime.toString()) ?? 5;
-            }
-            int elapsedSeconds = 0;
-
-            if (arrivedAt != null) {
-              final serverTimestamp = arrivedAt is num
-                  ? arrivedAt.toInt()
-                  : int.tryParse(arrivedAt.toString()) ?? 0;
-              if (serverTimestamp > 0) {
-                elapsedSeconds =
-                    ((DateTime.now().millisecondsSinceEpoch - serverTimestamp) /
-                            1000)
-                        .floor();
-              }
-            }
-            // Step 3: Timer ko perfect sync kar do
-            _startOrSyncWaitingTimer(
-              fromSeconds: elapsedSeconds,
-              freeMinutes: freeMinutes,
-            );
-            log(
-              "Perfect Sync → Free: $freeMinutes min | Elapsed: $elapsedSeconds sec",
-            );
-
-
-        // ... your existing arrived logic
-      }
-      else if ( data["status"] == "cancelled_by_customer") {
-        Navigator.pushAndRemoveUntil(
-          context,
-          CupertinoPageRoute(
-            builder: (_) => HomePage(
-              0,
-              forceSocketRefresh: true,
-            ),
-          ),
-              (route) => route.isFirst,
-        );
-      }
-    });
-  }*/
 
   @override
   void initState() {
@@ -187,18 +123,11 @@ class _MapRequestDetailsPageState extends State<MapRequestDetailsPage> {
       if (mounted) setState(() {});
     });
 
-    // ────────────────────────────────────────────────
-    // 1. Request current delivery status (handles reconnects, app resume, etc.)
-    // 2. Also listen for live updates
-    // ────────────────────────────────────────────────
     _requestCurrentDeliveryStatus();
 
     _socket.on("delivery:status_update", _handleDeliveryStatusUpdate);
   }
 
-// ────────────────────────────────────────────────────────────────
-// Separate method → cleaner, easier to test & maintain
-// ────────────────────────────────────────────────────────────────
   void _requestCurrentDeliveryStatus() {
     if (!_socket.connected) {
       log("Socket not connected → cannot request status yet");
@@ -211,7 +140,9 @@ class _MapRequestDetailsPageState extends State<MapRequestDetailsPage> {
     };
 
     _socket.emit("delivery:request_status", payload);
-    log("Emitted delivery:request_status for deliveryId: ${widget.deliveryData.id}");
+    log(
+      "Emitted delivery:request_status for deliveryId: ${widget.deliveryData.id}",
+    );
   }
 
   void _handleDeliveryStatusUpdate(dynamic rawData) {
@@ -250,13 +181,17 @@ class _MapRequestDetailsPageState extends State<MapRequestDetailsPage> {
           // Protect against unrealistic values (clock skew, late packets, etc.)
           final maxReasonableSeconds = freeMinutes * 60 + 600; // +10 min grace
           if (elapsedSeconds < 0 || elapsedSeconds > maxReasonableSeconds) {
-            log("Warning: unrealistic elapsedSeconds ($elapsedSeconds) → resetting to 0");
+            log(
+              "Warning: unrealistic elapsedSeconds ($elapsedSeconds) → resetting to 0",
+            );
             elapsedSeconds = 0;
           }
         }
       }
 
-      log("Arrived sync | free: $freeMinutes min | elapsed: $elapsedSeconds sec");
+      log(
+        "Arrived sync | free: $freeMinutes min | elapsed: $elapsedSeconds sec",
+      );
 
       _startOrSyncWaitingTimer(
         fromSeconds: elapsedSeconds,
@@ -265,8 +200,7 @@ class _MapRequestDetailsPageState extends State<MapRequestDetailsPage> {
 
       // Optional: update UI flags
       // if (mounted) setState(() { isArrived = true; });
-    }
-    else if (status == "cancelled_by_customer") {
+    } else if (status == "cancelled_by_customer") {
       log("Delivery cancelled by customer → redirecting to home");
 
       if (!mounted) return;
@@ -274,32 +208,28 @@ class _MapRequestDetailsPageState extends State<MapRequestDetailsPage> {
       Navigator.pushAndRemoveUntil(
         context,
         CupertinoPageRoute(
-          builder: (_) => HomePage(
-            0,
-            forceSocketRefresh: true,
-          ),
+          builder: (_) => HomePage(0, forceSocketRefresh: true),
         ),
-            (route) => route.isFirst,
+        (route) => route.isFirst,
       );
     }
     // Add other statuses if needed: picked_up, completed, etc.
   }
 
-// Important: Don't forget to remove listener when widget is disposed!
-/*  @override
+  // Important: Don't forget to remove listener when widget is disposed!
+  /*  @override
   void dispose() {
     _socket.off("delivery:status_update", _handleDeliveryStatusUpdate);
     // Also cancel any running timers here if not already done
     super.dispose();
   }*/
 
-
-
   @override
   void dispose() {
     _waitingTimer?.cancel();
     super.dispose();
   }
+
   void _startOrSyncWaitingTimer({
     required int fromSeconds,
     required int freeMinutes,
@@ -330,6 +260,7 @@ class _MapRequestDetailsPageState extends State<MapRequestDetailsPage> {
       _socket.emit("delivery:status_update", payload);
     }
   }
+
   Future<void> _fetchDeliveryData() async {
     try {
       setState(() {
@@ -358,6 +289,7 @@ class _MapRequestDetailsPageState extends State<MapRequestDetailsPage> {
       }
     }
   }
+
   Future<void> _getCurrentLocation() async {
     bool serviceEnabled = await Geolocator.isLocationServiceEnabled();
     if (!serviceEnabled) {
@@ -386,6 +318,7 @@ class _MapRequestDetailsPageState extends State<MapRequestDetailsPage> {
       _addMarkersAndRoute();
     }
   }
+
   void _addMarkersAndRoute() {
     _markers.clear();
     if (_currentLatLng != null) {
@@ -439,6 +372,7 @@ class _MapRequestDetailsPageState extends State<MapRequestDetailsPage> {
     setState(() {});
     _fetchFullRoute();
   }
+
   Future<void> _fetchFullRoute() async {
     if (_currentLatLng == null || widget.pickupLat == null) return;
 
@@ -528,6 +462,7 @@ class _MapRequestDetailsPageState extends State<MapRequestDetailsPage> {
       }
     }
   }
+
   Future<Map<String, dynamic>?> _fetchLeg(
     String origin,
     String dest,
@@ -587,6 +522,7 @@ class _MapRequestDetailsPageState extends State<MapRequestDetailsPage> {
     }
     return points;
   }
+
   LatLngBounds _calculateBounds(List<LatLng> points) {
     double minLat = points[0].latitude, maxLat = points[0].latitude;
     double minLng = points[0].longitude, maxLng = points[0].longitude;
@@ -601,6 +537,7 @@ class _MapRequestDetailsPageState extends State<MapRequestDetailsPage> {
       northeast: LatLng(maxLat, maxLng),
     );
   }
+
   Future<void> _openCustomerLiveTracking() async {
     if (_currentLatLng == null || widget.dropLats.isEmpty) {
       Fluttertoast.showToast(msg: "Loading location...");
@@ -630,6 +567,7 @@ class _MapRequestDetailsPageState extends State<MapRequestDetailsPage> {
       Fluttertoast.showToast(msg: "Google Maps not installed");
     }
   }
+
   void _showOTPDialog() {
     TextEditingController otpController = TextEditingController();
     bool isVerifying = false;
@@ -730,16 +668,19 @@ class _MapRequestDetailsPageState extends State<MapRequestDetailsPage> {
       },
     );
   }
+
   Future<void> _makePhoneCall(String phone) async {
     final uri = Uri(scheme: 'tel', path: phone);
     if (await canLaunchUrl(uri)) {
       await launchUrl(uri);
     }
   }
+
   Future<void> _createNumberIcons() async {
     _number1Icon = await _createNumberIcon("1", Colors.red);
     _number2Icon = await _createNumberIcon("2", Colors.orange);
   }
+
   Future<BitmapDescriptor> _createNumberIcon(String number, Color color) async {
     final size = 80.0;
     final recorder = ui.PictureRecorder();
@@ -776,6 +717,7 @@ class _MapRequestDetailsPageState extends State<MapRequestDetailsPage> {
     final byteData = await img.toByteData(format: ui.ImageByteFormat.png);
     return BitmapDescriptor.fromBytes(byteData!.buffer.asUint8List());
   }
+
   Future<void> loadSimpleDriverIcon() async {
     final recorder = ui.PictureRecorder();
     final canvas = Canvas(recorder);
@@ -801,6 +743,7 @@ class _MapRequestDetailsPageState extends State<MapRequestDetailsPage> {
 
     driverIcon = BitmapDescriptor.fromBytes(pngBytes!.buffer.asUint8List());
   }
+
   @override
   Widget build(BuildContext context) {
     // Safely get customer (fallback to null if missing)
@@ -1621,7 +1564,8 @@ class _MapRequestDetailsPageState extends State<MapRequestDetailsPage> {
                                                                       msg: response
                                                                           .message,
                                                                     );
-                                                                    Navigator.pushAndRemoveUntil(context,
+                                                                    Navigator.pushAndRemoveUntil(
+                                                                      context,
                                                                       CupertinoPageRoute(
                                                                         builder: (_) => HomePage(
                                                                           0,
@@ -1682,9 +1626,6 @@ class _MapRequestDetailsPageState extends State<MapRequestDetailsPage> {
                                                                     ),
                                                             ),
                                                           ),
-
-
-
                                                         ],
                                                       ),
                                                     ],
@@ -1724,6 +1665,7 @@ class _MapRequestDetailsPageState extends State<MapRequestDetailsPage> {
             ),
     );
   }
+
   Widget actionButton(String icon, String phone) {
     return Column(
       children: [

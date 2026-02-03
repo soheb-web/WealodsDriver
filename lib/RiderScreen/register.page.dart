@@ -1,6 +1,8 @@
 import 'dart:developer';
 import 'dart:io' show Platform;
+import 'package:delivery_rider_app/RiderScreen/onbordingPolicy.page.dart';
 import 'package:delivery_rider_app/RiderScreen/otp.page.dart';
+import 'package:delivery_rider_app/RiderScreen/termsCondition.page.dart';
 import 'package:delivery_rider_app/config/network/api.state.dart';
 import 'package:delivery_rider_app/config/utils/pretty.dio.dart';
 import 'package:delivery_rider_app/data/controller/getCityController.dart';
@@ -8,6 +10,7 @@ import 'package:delivery_rider_app/data/model/registerBodyModel.dart';
 import 'package:device_info_plus/device_info_plus.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/cupertino.dart';
+import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
@@ -110,19 +113,22 @@ class _RegisterPageState extends ConsumerState<RegisterPage> {
     codeController.dispose();
     super.dispose();
   }
+
   Future<String> fcmGetToken() async {
     // Permission request करें (iOS/Android पर जरूरी)
-    NotificationSettings settings = await FirebaseMessaging.instance.requestPermission(
-      alert: true,
-      badge: true,
-      sound: true,
-      provisional: true, // iOS के लिए provisional permission
-      carPlay: true,
-    );
+    NotificationSettings settings = await FirebaseMessaging.instance
+        .requestPermission(
+          alert: true,
+          badge: true,
+          sound: true,
+          provisional: true, // iOS के लिए provisional permission
+          carPlay: true,
+        );
 
     if (settings.authorizationStatus == AuthorizationStatus.authorized) {
       print('User granted permission');
-    } else if (settings.authorizationStatus == AuthorizationStatus.provisional) {
+    } else if (settings.authorizationStatus ==
+        AuthorizationStatus.provisional) {
       print('User granted provisional permission');
     } else {
       print('User declined or has not accepted permission');
@@ -137,6 +143,7 @@ class _RegisterPageState extends ConsumerState<RegisterPage> {
     print('FCM Token: $token'); // Console में print होगा - moved before return
     return token ?? "unknown_device";
   }
+
   Future<void> register(String cityId, String deviceId) async {
     final deviceToken = await fcmGetToken();
 
@@ -191,7 +198,16 @@ class _RegisterPageState extends ConsumerState<RegisterPage> {
           Navigator.pushAndRemoveUntil(
             context,
             CupertinoPageRoute(
-              builder: (context) => OtpPage(true, response.data['token']),
+              builder: (context) => OtpPage(
+                true,
+                response.data['token'],
+                mobile: phoneNumberController.text.trim(),
+                firstName: firstNameController.text.trim(),
+                lastNameController: lastNameController.text.trim(),
+                emailController: emailController.text.trim(),
+                cityId: cityId,
+                codeController: codeController.text.trim(),
+              ),
             ),
             (route) => false,
           );
@@ -386,7 +402,6 @@ class _RegisterPageState extends ConsumerState<RegisterPage> {
                               SizedBox(height: 26.h),
 
                               Row(
-                                crossAxisAlignment: CrossAxisAlignment.start,
                                 children: [
                                   Checkbox(
                                     side: const BorderSide(color: Colors.white),
@@ -394,27 +409,56 @@ class _RegisterPageState extends ConsumerState<RegisterPage> {
                                     onChanged: (value) =>
                                         setState(() => isCheckt = value!),
                                   ),
-                                  SizedBox(width: 8.w),
+
                                   Expanded(
                                     child: Text.rich(
                                       TextSpan(
+                                        text: "I agree to the ",
                                         style: GoogleFonts.inter(
-                                          fontSize: 10.sp,
-                                          fontWeight: FontWeight.w400,
+                                          fontSize: 12.sp,
                                           color: Colors.white,
                                         ),
-                                        children: const [
+                                        children: [
                                           TextSpan(
-                                            text:
-                                                "By checking this box, you agree to our ",
+                                            text: "Terms of Service",
+                                            style: const TextStyle(
+                                              decoration:
+                                                  TextDecoration.underline,
+                                              fontWeight: FontWeight.w500,
+                                              color: Colors.red,
+                                              decorationColor: Colors.red,
+                                            ),
+                                            recognizer: TapGestureRecognizer()
+                                              ..onTap = () {
+                                                Navigator.push(
+                                                  context,
+                                                  CupertinoPageRoute(
+                                                    builder: (_) =>
+                                                        const TermsConditionPage(),
+                                                  ),
+                                                );
+                                              },
                                           ),
+                                          const TextSpan(text: " and "),
                                           TextSpan(
-                                            text: "Terms & Conditions",
-                                            style: TextStyle(color: Colors.red),
-                                          ),
-                                          TextSpan(
-                                            text:
-                                                ". That all information provided is true and our team may contact you via any of the provided channels.",
+                                            text: "Privacy Policy",
+                                            style: const TextStyle(
+                                              decoration:
+                                                  TextDecoration.underline,
+                                              fontWeight: FontWeight.w500,
+                                              color: Colors.red,
+                                              decorationColor: Colors.red,
+                                            ),
+                                            recognizer: TapGestureRecognizer()
+                                              ..onTap = () {
+                                                Navigator.push(
+                                                  context,
+                                                  CupertinoPageRoute(
+                                                    builder: (_) =>
+                                                        const OnbordingPolicyPage(),
+                                                  ),
+                                                );
+                                              },
                                           ),
                                         ],
                                       ),

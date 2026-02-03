@@ -35,8 +35,6 @@ class _LoginPageState extends State<LoginPage> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-          
-          
               SizedBox(height: 55.h),
               InkWell(
                 onTap: () => Navigator.pop(context),
@@ -47,7 +45,11 @@ class _LoginPageState extends State<LoginPage> {
                     shape: BoxShape.circle,
                     color: Colors.white,
                   ),
-                  child: Icon(Icons.arrow_back, color: Colors.black, size: 20.sp),
+                  child: Icon(
+                    Icons.arrow_back,
+                    color: Colors.black,
+                    size: 20.sp,
+                  ),
                 ),
               ),
               SizedBox(height: 25.h),
@@ -78,12 +80,12 @@ class _LoginPageState extends State<LoginPage> {
                         ),
                       ),
                       SizedBox(height: 40.h),
+
                       // _buildTextField(
                       //   controller: emailController,
                       //   hint: "Email Address",
                       //   obscure: false,
                       // ),
-          
                       Container(
                         decoration: BoxDecoration(
                           color: Colors.white,
@@ -104,7 +106,8 @@ class _LoginPageState extends State<LoginPage> {
                           ],
                         ),
                         child: TextFormField(
-                          controller: emailController, // rename if possible -> phoneController
+                          controller:
+                              emailController, // rename if possible -> phoneController
                           keyboardType: TextInputType.phone,
                           maxLength: 10,
                           style: GoogleFonts.inter(
@@ -113,7 +116,8 @@ class _LoginPageState extends State<LoginPage> {
                             fontWeight: FontWeight.w400,
                           ),
                           inputFormatters: [
-                            FilteringTextInputFormatter.digitsOnly, // ✅ only numbers
+                            FilteringTextInputFormatter
+                                .digitsOnly, // ✅ only numbers
                           ],
                           decoration: InputDecoration(
                             counterText: "", // hide maxLength counter
@@ -154,54 +158,11 @@ class _LoginPageState extends State<LoginPage> {
                           },
                         ),
                       ),
-          
+
                       SizedBox(height: 25.h),
-                      // _buildTextField(
-                      //   controller: passwordController,
-                      //   hint: "Password",
-                      //   obscure: true,
-                      // ),
-                      // Align(
-                      //   alignment: Alignment.centerRight,
-                      //   child: TextButton(
-                      //     onPressed: () => Navigator.push(
-                      //       context,
-                      //       CupertinoPageRoute(
-                      //         builder: (context) => const ForgatPasswordPage(),
-                      //       ),
-                      //     ),
-                      //     child: Text(
-                      //       "Forgot Password?",
-                      //       style: GoogleFonts.inter(
-                      //         fontSize: 12.sp,
-                      //         fontWeight: FontWeight.w500,
-                      //         color: Colors.white,
-                      //       ),
-                      //     ),
-                      //   ),
-                      // ),
+
                       SizedBox(height: 30.h),
-                     /* ElevatedButton(
-                        style: ElevatedButton.styleFrom(
-                          minimumSize: Size(320.w, 55.h),
-                          backgroundColor: Colors.white,
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(30.r),
-                          ),
-                        ),
-                        onPressed: isLoading ? null : login,
-                        child: isLoading
-                            ? const CircularProgressIndicator(color: Colors.black)
-                            : Text(
-                                "Sign In",
-                                style: GoogleFonts.inter(
-                                  fontSize: 15.sp,
-                                  fontWeight: FontWeight.w500,
-                                  color: const Color(0xFF091425),
-                                ),
-                              ),
-                      ),*/
-          
+
                       Container(
                         width: double.infinity,
                         height: 50.h,
@@ -209,7 +170,9 @@ class _LoginPageState extends State<LoginPage> {
                           borderRadius: BorderRadius.circular(30.r),
                           boxShadow: [
                             BoxShadow(
-                              color: Colors.black.withOpacity(0.08), // ✅ same as TextField
+                              color: Colors.black.withOpacity(
+                                0.08,
+                              ), // ✅ same as TextField
                               blurRadius: 12,
                               spreadRadius: 1,
                               offset: const Offset(0, 4),
@@ -228,63 +191,63 @@ class _LoginPageState extends State<LoginPage> {
                           onPressed: isLoading ? null : login,
                           child: isLoading
                               ? SizedBox(
-                            width: 30.w,
-                            height: 30.h,
-                            child: const CircularProgressIndicator(
-                              color: Colors.white,
-                              strokeWidth: 2,
-                            ),
-                          )
+                                  width: 30.w,
+                                  height: 30.h,
+                                  child: const CircularProgressIndicator(
+                                    color: Colors.white,
+                                    strokeWidth: 2,
+                                  ),
+                                )
                               : Text(
-                            "GET OTP",
-                            style: GoogleFonts.inter(
-                              fontSize: 18.sp,
-                              fontWeight: FontWeight.w600,
-                              color: Colors.white,
-                            ),
-                          ),
+                                  "GET OTP",
+                                  style: GoogleFonts.inter(
+                                    fontSize: 18.sp,
+                                    fontWeight: FontWeight.w600,
+                                    color: Colors.white,
+                                  ),
+                                ),
                         ),
                       ),
-          
+
                       SizedBox(height: 10.h),
-          
+
                       // Expanded(child: SizedBox()),
-          
-          
                     ],
                   ),
                 ),
               ),
-          
 
               GestureDetector(
-                onTap: (){
-                  Navigator.push(context, MaterialPageRoute(builder: (context)=>RegisterPage()));
+                onTap: () {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(builder: (context) => RegisterPage()),
+                  );
                 },
                 child: Row(
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
-                  Text(
-                    "Don’t have an account?",
-                    style: GoogleFonts.inter(
-                      fontSize: 14.sp,
-                      fontWeight: FontWeight.w500,
-                      color: Colors.white,
+                    Text(
+                      "Don’t have an account?",
+                      style: GoogleFonts.inter(
+                        fontSize: 14.sp,
+                        fontWeight: FontWeight.w500,
+                        color: Colors.white,
+                      ),
                     ),
-                  ),
-                  SizedBox(width: 20,),
-                  Text(
-                    "Sign up",
-                    style: GoogleFonts.inter(
-                      fontSize: 16.sp,
-                      fontWeight: FontWeight.w600,
-                      color: Color(0xFF006970),
+                    SizedBox(width: 20),
+                    Text(
+                      "Sign up",
+                      style: GoogleFonts.inter(
+                        fontSize: 16.sp,
+                        fontWeight: FontWeight.w600,
+                        color: Color(0xFF006970),
+                      ),
                     ),
-                  ),
-
-                ],),
+                  ],
+                ),
               ),
-SizedBox(height: 10.h,),
+              SizedBox(height: 10.h),
             ],
           ),
         ),
@@ -396,7 +359,10 @@ SizedBox(height: 10.h,),
         Fluttertoast.showToast(msg: response.message ?? "Login successful");
         Navigator.pushReplacement(
           context,
-          MaterialPageRoute(builder: (context) => OtpPage(false, token)),
+          MaterialPageRoute(
+            builder: (context) =>
+                OtpPage(false, token, mobile: emailController.text.trim()),
+          ),
         );
       } else {
         Fluttertoast.showToast(msg: response.message ?? "Login failed");
@@ -408,5 +374,4 @@ SizedBox(height: 10.h,),
       if (mounted) setState(() => isLoading = false);
     }
   }
-
 }

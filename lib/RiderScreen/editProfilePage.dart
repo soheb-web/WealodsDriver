@@ -8,11 +8,6 @@ import 'package:image_picker/image_picker.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import '../data/model/driverProfileModel.dart';
 
-// ------------------------------------------------------------------
-// 1. Paste your DriverProfileModel (the whole file you posted)
-// ------------------------------------------------------------------
-// (just copy-paste the model code here – it’s the same you already have)
-// ------------------------------------------------------------------
 
 class Editprofilepage extends StatefulWidget {
   const Editprofilepage({super.key});
