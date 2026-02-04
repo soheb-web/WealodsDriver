@@ -189,11 +189,8 @@ part 'api.state.g.dart';
 
 // @RestApi(baseUrl: "https://backend.weloads.live/api")
 
-@RestApi(baseUrl: "http://192.168.1.82:4567/api") // local url julkar
-//@RestApi(baseUrl: "https://backend.weloads.live/api")
-//    @RestApi(baseUrl: "http://192.168.1.22:4567/api")
-//    @RestApi(baseUrl: "http://192.168.1.43:4567/api")
-// @RestApi(baseUrl: "https://backend.weloads.live/api")
+//@RestApi(baseUrl: "http://192.168.1.82:4567/api") // local url julkar
+@RestApi(baseUrl: "https://backend.weloads.live/api")
 abstract class APIStateNetwork {
   factory APIStateNetwork(Dio dio, {String baseUrl}) = _APIStateNetwork;
 

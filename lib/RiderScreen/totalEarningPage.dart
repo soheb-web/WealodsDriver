@@ -351,8 +351,6 @@ class TotalEarningPage extends ConsumerStatefulWidget {
 }
 
 class _TotalEarningPageState extends ConsumerState<TotalEarningPage> {
- 
-
   @override
   Widget build(BuildContext context) {
     final amountAsync = ref.watch(totalEarningProvider);
@@ -374,182 +372,191 @@ class _TotalEarningPageState extends ConsumerState<TotalEarningPage> {
           ),
         ),
       ),
-      body: SingleChildScrollView(
-        padding: EdgeInsets.all(16.w),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            /// ================= BALANCE CARD (Primary Gradient) =================
-            amountAsync.when(
-              loading: () => const Center(
-                child: CircularProgressIndicator(
-                  color: TotalEarningPage.primaryColor,
+      body: RefreshIndicator(
+        color: TotalEarningPage.primaryColor,
+        onRefresh: () async {
+          ref.invalidate(totalEarningProvider);
+          ref.invalidate(totalEarningDashbordProvider);
+          await ref.read(totalEarningDashbordProvider.future);
+        },
+        child: SingleChildScrollView(
+          physics: AlwaysScrollableScrollPhysics(),
+          padding: EdgeInsets.all(16.w),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              /// ================= BALANCE CARD (Primary Gradient) =================
+              amountAsync.when(
+                loading: () => const Center(
+                  child: CircularProgressIndicator(
+                    color: TotalEarningPage.primaryColor,
+                  ),
                 ),
-              ),
-              error: (e, _) => Text("Error: $e"),
-              data: (res) {
-                final amount = res.data ?? 0;
-                return Container(
-                  width: double.infinity,
-                  padding: EdgeInsets.all(24.w),
-                  decoration: BoxDecoration(
-                    gradient: const LinearGradient(
-                      begin: Alignment.topLeft,
-                      end: Alignment.bottomRight,
-                      colors: [
-                        TotalEarningPage.primaryColor,
-                        Color(0xFF004D52),
+                error: (e, _) => Text("Error: $e"),
+                data: (res) {
+                  final amount = res.data ?? 0;
+                  return Container(
+                    width: double.infinity,
+                    padding: EdgeInsets.all(24.w),
+                    decoration: BoxDecoration(
+                      gradient: const LinearGradient(
+                        begin: Alignment.topLeft,
+                        end: Alignment.bottomRight,
+                        colors: [
+                          TotalEarningPage.primaryColor,
+                          Color(0xFF004D52),
+                        ],
+                      ),
+                      borderRadius: BorderRadius.circular(24.r),
+                      boxShadow: [
+                        BoxShadow(
+                          color: TotalEarningPage.primaryColor.withOpacity(0.3),
+                          blurRadius: 15,
+                          offset: const Offset(0, 8),
+                        ),
                       ],
                     ),
-                    borderRadius: BorderRadius.circular(24.r),
-                    boxShadow: [
-                      BoxShadow(
-                        color: TotalEarningPage.primaryColor.withOpacity(0.3),
-                        blurRadius: 15,
-                        offset: const Offset(0, 8),
-                      ),
-                    ],
-                  ),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        "Current Balance",
-                        style: GoogleFonts.inter(
-                          color: Colors.white70,
-                          fontSize: 14.sp,
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          "Current Balance",
+                          style: GoogleFonts.inter(
+                            color: Colors.white70,
+                            fontSize: 14.sp,
+                          ),
                         ),
-                      ),
-                      SizedBox(height: 8.h),
-                      Text(
-                        "₹ $amount",
-                        style: GoogleFonts.inter(
-                          fontSize: 36.sp,
-                          fontWeight: FontWeight.w800,
-                          color: Colors.white,
+                        SizedBox(height: 8.h),
+                        Text(
+                          "₹ $amount",
+                          style: GoogleFonts.inter(
+                            fontSize: 36.sp,
+                            fontWeight: FontWeight.w800,
+                            color: Colors.white,
+                          ),
                         ),
-                      ),
-                    ],
-                  ),
-                );
-              },
-            ),
-
-            SizedBox(height: 24.h),
-
-            /// ================= FILTER BUTTONS (Themed) =================
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-              children: ["day", "week", "year"].map((type) {
-                final isSelected = selectedType == type;
-                return GestureDetector(
-                  onTap: () {
-                    ref.read(earningTypeProvider.notifier).state = type;
-                    ref.read(earningDashbordProvider.notifier).state = type;
-                  },
-                  child: AnimatedContainer(
-                    duration: const Duration(milliseconds: 300),
-                    padding: EdgeInsets.symmetric(
-                      horizontal: 24.w,
-                      vertical: 12.h,
+                      ],
                     ),
-                    decoration: BoxDecoration(
-                      color: isSelected
-                          ? TotalEarningPage.primaryColor
-                          : Colors.white,
-                      borderRadius: BorderRadius.circular(12.r),
-                      border: Border.all(
+                  );
+                },
+              ),
+
+              SizedBox(height: 24.h),
+
+              /// ================= FILTER BUTTONS (Themed) =================
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                children: ["day", "week", "year"].map((type) {
+                  final isSelected = selectedType == type;
+                  return GestureDetector(
+                    onTap: () {
+                      ref.read(earningTypeProvider.notifier).state = type;
+                      ref.read(earningDashbordProvider.notifier).state = type;
+                    },
+                    child: AnimatedContainer(
+                      duration: const Duration(milliseconds: 300),
+                      padding: EdgeInsets.symmetric(
+                        horizontal: 24.w,
+                        vertical: 12.h,
+                      ),
+                      decoration: BoxDecoration(
                         color: isSelected
                             ? TotalEarningPage.primaryColor
-                            : Colors.black12,
+                            : Colors.white,
+                        borderRadius: BorderRadius.circular(12.r),
+                        border: Border.all(
+                          color: isSelected
+                              ? TotalEarningPage.primaryColor
+                              : Colors.black12,
+                        ),
+                        boxShadow: isSelected
+                            ? [
+                                BoxShadow(
+                                  color: TotalEarningPage.primaryColor
+                                      .withOpacity(0.2),
+                                  blurRadius: 8,
+                                ),
+                              ]
+                            : [],
                       ),
-                      boxShadow: isSelected
-                          ? [
-                              BoxShadow(
-                                color: TotalEarningPage.primaryColor
-                                    .withOpacity(0.2),
-                                blurRadius: 8,
-                              ),
-                            ]
-                          : [],
-                    ),
-                    child: Text(
-                      type.toUpperCase(),
-                      style: GoogleFonts.inter(
-                        color: isSelected ? Colors.white : Colors.black54,
-                        fontWeight: FontWeight.w600,
-                        fontSize: 12.sp,
+                      child: Text(
+                        type.toUpperCase(),
+                        style: GoogleFonts.inter(
+                          color: isSelected ? Colors.white : Colors.black54,
+                          fontWeight: FontWeight.w600,
+                          fontSize: 12.sp,
+                        ),
                       ),
                     ),
-                  ),
-                );
-              }).toList(),
-            ),
-
-            SizedBox(height: 28.h),
-
-            /// ================= GRAPH CONTAINER (Themed) =================
-            dashAsync.when(
-              loading: () => const Center(
-                child: CircularProgressIndicator(
-                  color: TotalEarningPage.primaryColor,
-                ),
+                  );
+                }).toList(),
               ),
-              error: (e, _) => Text("Error: $e"),
-              data: (res) {
-                final data = res.data;
-                final totalTime = data?.totalTime ?? "0h";
-                final deliveries = data?.totalDeliveries ?? 0;
-                final graphData = data?.graph ?? [];
 
-                final List<double> rawEarnings = graphData
-                    .map((e) => (e.earning ?? 0).toDouble())
-                    .toList();
-                final List<String> labels = graphData
-                    .map((e) => e.label ?? "")
-                    .toList();
+              SizedBox(height: 28.h),
 
-                double maxEarning = rawEarnings.isEmpty
-                    ? 1.0
-                    : rawEarnings.reduce((a, b) => a > b ? a : b);
-                if (maxEarning == 0) maxEarning = 1.0;
+              /// ================= GRAPH CONTAINER (Themed) =================
+              dashAsync.when(
+                loading: () => const Center(
+                  child: CircularProgressIndicator(
+                    color: TotalEarningPage.primaryColor,
+                  ),
+                ),
+                error: (e, _) => Text("Error: $e"),
+                data: (res) {
+                  final data = res.data;
+                  final totalTime = data?.totalTime ?? "0h";
+                  final deliveries = data?.totalDeliveries ?? 0;
+                  final graphData = data?.graph ?? [];
 
-                final List<double> normalizedValues = rawEarnings
-                    .map((v) => v / maxEarning)
-                    .toList();
+                  final List<double> rawEarnings = graphData
+                      .map((e) => (e.earning ?? 0).toDouble())
+                      .toList();
+                  final List<String> labels = graphData
+                      .map((e) => e.label ?? "")
+                      .toList();
 
-                return Column(
-                  children: [
-                    WeeklyPillGraph(
-                      values: normalizedValues,
-                      rawValues: rawEarnings,
-                      labels: labels,
-                      type: selectedType,
-                      primaryColor: TotalEarningPage.primaryColor,
-                    ),
-                    SizedBox(height: 24.h),
+                  double maxEarning = rawEarnings.isEmpty
+                      ? 1.0
+                      : rawEarnings.reduce((a, b) => a > b ? a : b);
+                  if (maxEarning == 0) maxEarning = 1.0;
 
-                    /// ================= STATS CARDS (Themed Icon) =================
-                    Row(
-                      children: [
-                        _statCard(
-                          Icons.timer_outlined,
-                          "Total Time",
-                          totalTime,
-                        ),
-                        SizedBox(width: 16.w),
-                        _statCard(
-                          Icons.local_shipping_outlined,
-                          "Deliveries",
-                          deliveries.toString(),
-                        ),
-                      ],
-                    ),
-                  ],
-                );
-              },
-            ),
-          ],
+                  final List<double> normalizedValues = rawEarnings
+                      .map((v) => v / maxEarning)
+                      .toList();
+
+                  return Column(
+                    children: [
+                      WeeklyPillGraph(
+                        values: normalizedValues,
+                        rawValues: rawEarnings,
+                        labels: labels,
+                        type: selectedType,
+                        primaryColor: TotalEarningPage.primaryColor,
+                      ),
+                      SizedBox(height: 24.h),
+
+                      /// ================= STATS CARDS (Themed Icon) =================
+                      Row(
+                        children: [
+                          _statCard(
+                            Icons.timer_outlined,
+                            "Total Time",
+                            totalTime,
+                          ),
+                          SizedBox(width: 16.w),
+                          _statCard(
+                            Icons.local_shipping_outlined,
+                            "Deliveries",
+                            deliveries.toString(),
+                          ),
+                        ],
+                      ),
+                    ],
+                  );
+                },
+              ),
+            ],
+          ),
         ),
       ),
     );
