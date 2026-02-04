@@ -67,7 +67,7 @@ class MyApp extends StatelessWidget {
     getToken();
     var box = Hive.box("userdata");
     var PrintToken = box.get("token");
-    //log(PrintToken);
+    log(PrintToken ?? "No token found");
     return AnnotatedRegion<SystemUiOverlayStyle>(
       value: const SystemUiOverlayStyle(
         statusBarColor: Color(0xFF092325),

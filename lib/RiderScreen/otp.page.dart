@@ -449,7 +449,6 @@
 
 import 'dart:async';
 import 'dart:developer';
-
 import 'package:delivery_rider_app/RiderScreen/login.page.dart';
 import 'package:delivery_rider_app/data/model/loginBodyModel.dart';
 import 'package:delivery_rider_app/data/model/registerBodyModel.dart';
@@ -467,10 +466,9 @@ import '../data/model/otpModelDATA.dart';
 import 'LocationEnablePage.dart';
 
 class OtpPage extends StatefulWidget {
-  final bool data; // true = register, false = login
+  final bool data;
   final String token;
   final String mobile;
-
   final String? firstName;
   final String? lastNameController;
   final String? emailController;

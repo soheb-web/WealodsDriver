@@ -2,6 +2,7 @@ import 'dart:developer';
 import 'package:delivery_rider_app/RiderScreen/document.page.dart';
 import 'package:delivery_rider_app/RiderScreen/login.page.dart';
 import 'package:delivery_rider_app/RiderScreen/support.page.dart';
+import 'package:delivery_rider_app/RiderScreen/totalEarningPage.dart';
 import 'package:delivery_rider_app/RiderScreen/updateProfile.dart';
 import 'package:delivery_rider_app/RiderScreen/vihical.page.dart';
 import 'package:delivery_rider_app/data/controller/getProfileController.dart';
@@ -243,7 +244,6 @@ class _ProfilePageState extends ConsumerState<ProfilePage> {
                       ),
                     );
                   }),
-
                   _buildTile(Icons.person_add_alt_1, "Invite Friends", () {
                     if (referralCode.isNotEmpty) {
                       final message =

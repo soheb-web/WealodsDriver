@@ -3,6 +3,7 @@ import 'dart:async';
 import 'package:delivery_rider_app/RiderScreen/booking.page.dart';
 import 'package:delivery_rider_app/RiderScreen/profile.page.dart';
 import 'package:delivery_rider_app/RiderScreen/requestDetails.page.dart';
+import 'package:delivery_rider_app/RiderScreen/totalEarningPage.dart';
 import 'package:delivery_rider_app/RiderScreen/vihical.page.dart';
 import 'package:delivery_rider_app/data/model/RejectDeliveryBodyModel.dart';
 import 'package:flutter/material.dart';
@@ -909,7 +910,7 @@ class _HomePageState extends State<HomePage> with WidgetsBindingObserver {
               ),
             )
           : selectIndex == 1
-          ? const WithdrawMoneyPage()
+          ? TotalEarningPage()
           : selectIndex == 2
           ? BookingPage(socket)
           : ProfilePage(socket),

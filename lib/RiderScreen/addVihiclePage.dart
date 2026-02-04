@@ -1,5 +1,3 @@
-
-
 import 'dart:convert';
 import 'dart:io';
 import 'package:flutter/cupertino.dart';
@@ -71,6 +69,7 @@ class _AddVihiclePageState extends State<AddVihiclePage> {
 
     getVehicleType(); // This will set selectedVehicle safely
   }
+
   void _prefillTextFields() {
     final v = widget.vehicleDetail;
     if (v == null) return;
@@ -88,6 +87,7 @@ class _AddVihiclePageState extends State<AddVihiclePage> {
       }
     }
   }
+
   Future<void> getVehicleType() async {
     try {
       final dio = await callDio();
@@ -104,6 +104,7 @@ class _AddVihiclePageState extends State<AddVihiclePage> {
       _showSnackBar("Failed to load vehicle types");
     }
   }
+
   void _setSelectedVehicleSafely() {
     final targetId = widget.vehicleDetail?.vehicle?.id;
     if (targetId == null || vehicleList.isEmpty) return;
@@ -116,6 +117,7 @@ class _AddVihiclePageState extends State<AddVihiclePage> {
       selectedVehicle = vehicleList.first;
     }
   }
+
   Future<String?> _upload(File file) async {
     try {
       if (!await file.exists()) throw Exception('File not found');
@@ -143,6 +145,7 @@ class _AddVihiclePageState extends State<AddVihiclePage> {
       return null;
     }
   }
+
   void _showPickerSheet(String docType) {
     showCupertinoModalPopup(
       context: context,
@@ -170,6 +173,7 @@ class _AddVihiclePageState extends State<AddVihiclePage> {
       ),
     );
   }
+
   Future<void> _pickFromGallery(String docType) async {
     final picked = await _picker.pickImage(
       source: ImageSource.gallery,
@@ -179,6 +183,7 @@ class _AddVihiclePageState extends State<AddVihiclePage> {
       setState(() => documentImages[docType] = File(picked.path));
     }
   }
+
   Future<void> _pickFromCamera(String docType) async {
     final status = await Permission.camera.request();
     if (!status.isGranted) {
@@ -215,25 +220,24 @@ class _AddVihiclePageState extends State<AddVihiclePage> {
   // }
 
   Widget buildTextField(
-      String hint,
-      TextEditingController controller, {
-        bool isNumberOnly = false,           // ← नया optional parameter
-        int? maxLength,                      // optional: max characters
-        String? Function(String?)? validator, // optional: validation
-      }) {
+    String hint,
+    TextEditingController controller, {
+    bool isNumberOnly = false, // ← नया optional parameter
+    int? maxLength, // optional: max characters
+    String? Function(String?)? validator, // optional: validation
+  }) {
     return TextFormField(
       controller: controller,
-      keyboardType: isNumberOnly
-          ? TextInputType.number
-          : TextInputType.text,
+      keyboardType: isNumberOnly ? TextInputType.number : TextInputType.text,
       inputFormatters: isNumberOnly
           ? [
-        FilteringTextInputFormatter.digitsOnly, // सिर्फ 0-9
-        if (maxLength != null) LengthLimitingTextInputFormatter(maxLength),
-      ]
+              FilteringTextInputFormatter.digitsOnly, // सिर्फ 0-9
+              if (maxLength != null)
+                LengthLimitingTextInputFormatter(maxLength),
+            ]
           : (maxLength != null
-          ? [LengthLimitingTextInputFormatter(maxLength)]
-          : []),
+                ? [LengthLimitingTextInputFormatter(maxLength)]
+                : []),
       maxLength: maxLength, // अगर चाहिए तो
       validator: validator,
       decoration: InputDecoration(
@@ -268,6 +272,7 @@ class _AddVihiclePageState extends State<AddVihiclePage> {
       ),
     );
   }
+
   Future<void> submitVehicle() async {
     if (selectedVehicle == null)
       return _showSnackBar('Please select a vehicle type');
@@ -330,6 +335,7 @@ class _AddVihiclePageState extends State<AddVihiclePage> {
       setState(() => isLoading = false);
     }
   }
+
   Future<void> _reuploadSingleDocument() async {
     final rejectedDoc = widget.documentToReupload!;
     final docType = rejectedDoc.type!;
@@ -371,6 +377,7 @@ class _AddVihiclePageState extends State<AddVihiclePage> {
       setState(() => isLoading = false);
     }
   }
+
   Future<void> _submit() async {
     if (isReuploadMode) {
       await _reuploadSingleDocument();
@@ -378,6 +385,7 @@ class _AddVihiclePageState extends State<AddVihiclePage> {
       await submitVehicle();
     }
   }
+
   Widget _buildDocumentUpload(String docType) {
     final isThisDoc = isReuploadMode
         ? widget.documentToReupload?.type == docType
@@ -446,17 +454,17 @@ class _AddVihiclePageState extends State<AddVihiclePage> {
                       mainAxisAlignment: MainAxisAlignment.center,
                       children: [
                         Text(
-
                           docType == 'RC'
                               ? 'Registration Certificate'
-                              : docType == 'Other'? 'Vehicle Photo':
-                          docType == 'POC'?"PUC"
+                              : docType == 'Other'
+                              ? 'Vehicle Photo'
+                              : docType == 'POC'
+                              ? "PUC"
                               : docType,
                           style: GoogleFonts.inter(
                             fontSize: 13.sp,
                             fontWeight: FontWeight.w600,
                           ),
-
                         ),
                         if (isRejected)
                           Text(
@@ -483,6 +491,7 @@ class _AddVihiclePageState extends State<AddVihiclePage> {
       ],
     );
   }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -556,7 +565,6 @@ class _AddVihiclePageState extends State<AddVihiclePage> {
                   ),
                 ),
               ] else ...[
-
                 vehicleList.isEmpty
                     ? const Center(child: CircularProgressIndicator())
                     : Container(
@@ -590,17 +598,21 @@ class _AddVihiclePageState extends State<AddVihiclePage> {
                 SizedBox(height: 20.h),
                 Container(
                   decoration: const BoxDecoration(color: Color(0xffF3F7F5)),
-                  child: buildTextField("Number Plate", numberPlateController,
+                  child: buildTextField(
+                    "Number Plate",
+                    numberPlateController,
 
-                    isNumberOnly: false,           // ← Number keyboard + digits only
+                    isNumberOnly: false, // ← Number keyboard + digits only
                     maxLength: 20,
                   ),
                 ),
                 SizedBox(height: 20.h),
                 Container(
                   decoration: const BoxDecoration(color: Color(0xffF3F7F5)),
-                  child: buildTextField("Vehicle Model", modelController,
-                    isNumberOnly: false,           // ← Number keyboard + digits only
+                  child: buildTextField(
+                    "Vehicle Model",
+                    modelController,
+                    isNumberOnly: false, // ← Number keyboard + digits only
                     maxLength: 20,
                   ),
                 ),
@@ -608,26 +620,25 @@ class _AddVihiclePageState extends State<AddVihiclePage> {
                 Container(
                   decoration: const BoxDecoration(color: Color(0xffF3F7F5)),
                   child:
-                  // buildTextField(
-                  //   "Max Load Capacity(Kg)",
-                  //   capacityWeightController,
-                  // ),
-                  buildTextField(
-                    "Max Load Capacity(Kg)",
-                    capacityWeightController,
-                    isNumberOnly: true,           // ← Number keyboard + digits only
-                    maxLength: 20,                 // optional: max 99999 kg तक
-                  ),
+                      // buildTextField(
+                      //   "Max Load Capacity(Kg)",
+                      //   capacityWeightController,
+                      // ),
+                      buildTextField(
+                        "Max Load Capacity(Kg)",
+                        capacityWeightController,
+                        isNumberOnly: true, // ← Number keyboard + digits only
+                        maxLength: 20, // optional: max 99999 kg तक
+                      ),
                 ),
                 SizedBox(height: 20.h),
                 Container(
                   decoration: const BoxDecoration(color: Color(0xffF3F7F5)),
-                  child:
-                  buildTextField(
+                  child: buildTextField(
                     "Max Load Capacity(Kg)",
                     capacityVolumeController,
-                    isNumberOnly: true,           // ← Number keyboard + digits only
-                    maxLength: 20,                 // optional: max 99999 kg तक
+                    isNumberOnly: true, // ← Number keyboard + digits only
+                    maxLength: 20, // optional: max 99999 kg तक
                   ),
                   // buildTextField(
                   //   "Capacity Volume",
