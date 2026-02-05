@@ -136,14 +136,13 @@ class _QRGeneratorScreenState extends State<QRGeneratorScreen> {
 import 'package:flutter/material.dart';
 import 'package:qr_flutter/qr_flutter.dart';
 
+
 class QRGeneratorScreen extends StatefulWidget {
   final String userId;
-
   const QRGeneratorScreen({
     super.key,
     required this.userId,
   });
-
   @override
   State<QRGeneratorScreen> createState() => _QRGeneratorScreenState();
 }
@@ -153,9 +152,7 @@ class _QRGeneratorScreenState extends State<QRGeneratorScreen> {
   final primaryDark = const Color(0xFF004C52);
   final primaryLight = const Color(0xFF3399A0);
   final backgroundLight = const Color(0xFFF5FAFA);
-
   late String _qrData;
-
   @override
   void initState() {
     super.initState();
@@ -163,7 +160,6 @@ class _QRGeneratorScreenState extends State<QRGeneratorScreen> {
         ? widget.userId.trim()
         : "No ID provided";
   }
-
   @override
   Widget build(BuildContext context) {
     return Scaffold(
