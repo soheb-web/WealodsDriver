@@ -144,6 +144,7 @@ import 'package:delivery_rider_app/data/model/registerBodyModel.dart';
 import 'package:delivery_rider_app/data/model/registerResModel.dart';
 import 'package:delivery_rider_app/data/model/ticketReplyBodyModel.dart';
 import 'package:delivery_rider_app/data/model/ticketReplyResModel.dart';
+import 'package:delivery_rider_app/data/model/totalEarningResModel.dart';
 import 'package:dio/dio.dart';
 import 'package:retrofit/retrofit.dart';
 import '../../data/model/AddBodyVihileModel.dart';
@@ -188,69 +189,41 @@ part 'api.state.g.dart';
 
 // @RestApi(baseUrl: "https://backend.weloads.live/api")
 
-
-// @RestApi(baseUrl: "http://192.168.1.43:4567/api") // local url
-
-@RestApi(baseUrl: "https://backend.weloads.live/api")///julkar
-
-//    @RestApi(baseUrl: "http://192.168.1.22:4567/api")///julkar
-//    @RestApi(baseUrl: "http://192.168.1.43:4567/api")///julkar
-
-
-// @RestApi(baseUrl: "https://backend.weloads.live/api")
-// http://192.168.1.26:4567/
-
+//@RestApi(baseUrl: "http://192.168.1.82:4567/api") // local url julkar
+@RestApi(baseUrl: "https://backend.weloads.live/api")
 abstract class APIStateNetwork {
   factory APIStateNetwork(Dio dio, {String baseUrl}) = _APIStateNetwork;
 
-
   @POST("/v1/driver/updateVehicleStatus")
   Future<SelectVicileResponse> updateVehicleStatus(
-      @Body() VihicleSelectModel body,
-      );
-
+    @Body() VihicleSelectModel body,
+  );
 
   @POST("/v1/driver/withdrawRequest")
   Future<WithdrawRequestResponseModel> withdrawRequest(
-      @Body() WithdrawBodyModel body,
-      );
-
-
+    @Body() WithdrawBodyModel body,
+  );
 
   @POST("/v1/driver/createOrder")
-  Future<CreateOrderResponseModel> createOrder(
-      @Body() CreateOrderModel body,
-      );
-
+  Future<CreateOrderResponseModel> createOrder(@Body() CreateOrderModel body);
 
   @GET("/v1/driver/getTxList")
   Future<TransactionListResponseModel> getTxList();
 
-
-
-
   @POST("/v1/driver/getWalletTransactions")
   Future<QrTransactionHistoryModel> getWalletTransactions();
-
-
 
   @POST("/v1/driver/getCommissions")
   Future<CommissionModel> getCommissions();
 
-
-
   @POST("/v1/driver/driverArrived")
-  Future<ArrivedResponseModel> driverArrived(
-      @Body() DriverArivedModel body,
-      );
-
+  Future<ArrivedResponseModel> driverArrived(@Body() DriverArivedModel body);
 
   // ✅ Delivery-related
   @GET("/v1/driver/getDeliveryById")
   Future<DeliveryResponseModel> getDeliveryById(
-      @Query("deliveryId") String deliveryId,
-      );
-
+    @Query("deliveryId") String deliveryId,
+  );
 
   @POST("/v1/driver/getReviewRatingList")
   Future<RatingResponseModel> getReviewRatingList(
@@ -261,8 +234,6 @@ abstract class APIStateNetwork {
   Future<DeliveryHistoryResponseModel> getDeliveryHistory(
     @Body() DeliveryHistoryRequestModel body,
   );
-
-
 
   @POST("/v1/driver/deliveryPickupReached")
   Future<HttpResponse<dynamic>> deliveryPickupReached(
@@ -384,9 +355,11 @@ abstract class APIStateNetwork {
     @Body() UpdateUserProfileBodyModel body,
   );
 
+  @GET("/v1/driver/totalEraning")
+  Future<TotalEarningResModel> totlaEarning(@Query("type") String type);
 
-
-
-
-
+  @GET("/v1/driver/earningDashboard")
+  Future<TotalEarningDashbordResModel> totlaEarningDashbord(
+    @Query("type") String type,
+  );
 }

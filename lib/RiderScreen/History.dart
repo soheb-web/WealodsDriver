@@ -3,7 +3,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:intl/intl.dart'; // keeping even if not used yet
-
 import '../data/controller/getProfileController.dart'; // assuming this exists
 import 'QrTransactionHistory.dart';
 import 'TransactionHistory.dart';

@@ -1,76 +1,3 @@
-/*
-import 'package:flutter/material.dart';
-import 'package:flutter_screenutil/flutter_screenutil.dart';
-import 'package:gif/gif.dart';
-
-import 'onbording.page.dart';
-
-class SplashScreen extends StatefulWidget {
-  @override
-  _SplashScreenState createState() => _SplashScreenState();
-}
-
-class _SplashScreenState extends State<SplashScreen>
-    with TickerProviderStateMixin {
-  late GifController controller;
-
-  @override
-  void initState() {
-    super.initState();
-    controller = GifController(vsync: this);
-    Future.delayed(Duration(seconds: 8), () {
-      Navigator.pushAndRemoveUntil(
-        context,
-        MaterialPageRoute(builder: (context) => OnbordingPage()),
-        (route) => false,
-      );
-      // // 3 सेकंड बाद home screen पर जाएं
-      // Future.delayed(Duration(seconds: 3), () {
-      //   Navigator.pushReplacementNamed(context, '/home');
-      // });
-    });
-  }
-
-  @override
-  void dispose() {
-    controller.dispose();
-    super.dispose();
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      backgroundColor: Colors.white, // या अपनी पसंद का color
-      body: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          Center(
-            child: Gif(
-              image: AssetImage("assets/gif/splash.gif"),
-              controller: controller,
-              autostart: Autostart.loop,
-              fit: BoxFit.contain,
-              width: 300, // अपनी जरूरत के अनुसार size
-              height: 300,
-            ),
-          ),
-
-          // Text(
-          //   "Splash",
-          //   style: TextStyle(
-          //     fontSize: 20.sp,
-          //     fontWeight: FontWeight.bold,
-          //     color:Colors.black ,
-          //   ),
-          // ),
-        ],
-      ),
-    );
-  }
-}
-*/
-
-
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:gif/gif.dart';
@@ -85,7 +12,8 @@ class SplashScreen extends StatefulWidget {
   State<SplashScreen> createState() => _SplashScreenState();
 }
 
-class _SplashScreenState extends State<SplashScreen> with TickerProviderStateMixin {
+class _SplashScreenState extends State<SplashScreen>
+    with TickerProviderStateMixin {
   late GifController controller;
 
   @override
@@ -99,7 +27,7 @@ class _SplashScreenState extends State<SplashScreen> with TickerProviderStateMix
       Navigator.pushAndRemoveUntil(
         context,
         MaterialPageRoute(builder: (context) => const OnbordingPage()),
-            (route) => false,
+        (route) => false,
       );
     });
   }
@@ -118,7 +46,6 @@ class _SplashScreenState extends State<SplashScreen> with TickerProviderStateMix
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-
             // आपका GIF (सेंटर में)
             SizedBox(
               width: 240.w,
@@ -168,7 +95,9 @@ class _SplashScreenState extends State<SplashScreen> with TickerProviderStateMix
 
             // नीचे छोटा सा लोडिंग इंडिकेटर (शानदार लगता है)
             CircularProgressIndicator(
-              valueColor: const AlwaysStoppedAnimation<Color>(Color(0xFF006970)),
+              valueColor: const AlwaysStoppedAnimation<Color>(
+                Color(0xFF006970),
+              ),
               strokeWidth: 4,
               backgroundColor: Colors.grey[200],
             ),

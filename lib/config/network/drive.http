@@ -1,6 +1,6 @@
-@token = Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOiI2OGQyOTU1ZWRkNWMxYjUzMGFlYjhmZmYiLCJ1c2VyVHlwZSI6ImRyaXZlciIsImlhdCI6MTc1ODcxNDg0NiwiZXhwIjoxNzkwMjUwODQ2fQ.E_iTbxXaYYum_UU778b5Pxmva75wrVqSeIEQfeyL5Yw
+@token = Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOiI2OTc4ODI1ZWM2YjYxN2NhM2I2YWU4NzMiLCJ1c2VyVHlwZSI6ImRyaXZlciIsImlhdCI6MTc3MDE4NjMxNiwiZXhwIjoxODAxNzIyMzE2fQ.8lGLRdAULVknT5l7oN142dhq9QWxTp-STsBzX1AfqlE
 # @url =  http://localhost:4567
-@url =  https://backend.weloads.live
+@url =  http://192.168.1.82:4567
 
 //Register for client
 ###
@@ -240,3 +240,15 @@ Authorization: {{token}}
     "message": "hi",
     "ticketId": "69083cc8dd887949c4e9ec6a"
 }
+
+//totalEraning
+###
+GET {{url}}/api/v1/driver/totalEraning?type=day HTTP/1.1
+Content-type: application/json
+Authorization: {{token}}
+
+//earningDashboard
+###
+GET {{url}}/api/v1/driver/earningDashboard?type=week HTTP/1.1
+Content-type: application/json
+Authorization: {{token}}

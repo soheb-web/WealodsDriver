@@ -3,11 +3,13 @@ import 'dart:io';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_image_compress/flutter_image_compress.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:fluttertoast/fluttertoast.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:image_picker/image_picker.dart';
+import 'package:path_provider/path_provider.dart';
 import 'package:permission_handler/permission_handler.dart';
 import '../config/network/api.state.dart';
 import '../config/utils/pretty.dio.dart';
@@ -40,7 +42,7 @@ class _UpdateUserProfilePageState extends ConsumerState<UpdateUserProfilePage> {
   //  IMAGE PICKER
   // -----------------------------------------------------------------
   Future<void> _pickFromGallery() async {
-    final status = await Permission.photos.request();
+    final status = await Permission.camera.request();
     if (!status.isGranted) {
       Fluttertoast.showToast(msg: "Gallery permission denied");
       return;
@@ -254,7 +256,6 @@ class _UpdateUserProfilePageState extends ConsumerState<UpdateUserProfilePage> {
               ),
               SizedBox(height: 20.h),
 
-
               TextFormField(
                 onTap: () {
                   Fluttertoast.showToast(
@@ -350,7 +351,6 @@ class _UpdateUserProfilePageState extends ConsumerState<UpdateUserProfilePage> {
                   onTap: _showPickerSheet,
                   child: Stack(
                     children: [
-
                       Container(
                         width: 300.w,
                         height: 200.h,
@@ -405,7 +405,6 @@ class _UpdateUserProfilePageState extends ConsumerState<UpdateUserProfilePage> {
                                 ],
                               ),
                       ),
-
 
                       Positioned(
                         top: 10,
@@ -465,50 +464,107 @@ class _UpdateUserProfilePageState extends ConsumerState<UpdateUserProfilePage> {
     );
   }
 
-  // -----------------------------------------------------------------
-  //  UPDATE LOGIC
-  // -----------------------------------------------------------------
+  // Future<void> _updateProfile() async {
+  //   setState(() => _isLoading = true);
+  //   try {
+  //     final service = APIStateNetwork(callDio());
+  //     // 1. Upload new image (if any)
+  //     String? finalImageUrl = _networkImageUrl; // keep old if no new
+  //     if (_pickedImage != null) {
+  //       final uploadRes = await service.uploadImage(_pickedImage!);
+  //       if (uploadRes.error == false && uploadRes.data.imageUrl.isNotEmpty) {
+  //         finalImageUrl = uploadRes.data.imageUrl;
+  //       } else {
+  //         throw Exception("Image upload failed");
+  //       }
+  //     }
+  //     // 2. Build request body
+  //     final body = UpdateUserProfileBodyModel(
+  //       firstName: _firstNameCtrl.text.trim(),
+  //       lastName: _lastNameCtrl.text.trim(),
+  //       image: finalImageUrl!,
+  //     );
+  //     // 3. Call update API
+  //     final updateRes = await service.updateCutomerProfile(body);
+  //     Fluttertoast.showToast(
+  //       msg:
+  //           updateRes.message ??
+  //           (updateRes.code == 0 ? "Profile updated" : "Update failed"),
+  //     );
+  //     if (updateRes.code == 0) {
+  //       // Optional: refresh profile data
+  //       ref.invalidate(profileController);
+  //       ref.refresh(profileController);
+  //       Navigator.pop(context);
+  //     }
+  //   } catch (e, st) {
+  //     log("Update error: $e\n$st");
+  //     Fluttertoast.showToast(msg: "Error: $e");
+  //   } finally {
+  //     if (mounted) setState(() => _isLoading = false);
+  //   }
+  // }
+
+  Future<File> compressImage(File file) async {
+    final dir = await getTemporaryDirectory();
+    final targetPath =
+        '${dir.path}/${DateTime.now().millisecondsSinceEpoch}.jpg';
+
+    final result = await FlutterImageCompress.compressAndGetFile(
+      file.absolute.path,
+      targetPath,
+      quality: 70, // 👈 Safe quality (prevents 413 error)
+    );
+
+    return File(result!.path);
+  }
+
   Future<void> _updateProfile() async {
     setState(() => _isLoading = true);
+
     try {
       final service = APIStateNetwork(callDio());
 
-      // 1. Upload new image (if any)
-      String? finalImageUrl = _networkImageUrl; // keep old if no new
+      /// 1️⃣ Keep existing image if no new image selected
+      String finalImageUrl = _networkImageUrl ?? "";
+
+      /// 2️⃣ Upload image if user selected a new one
       if (_pickedImage != null) {
-        final uploadRes = await service.uploadImage(_pickedImage!);
+        final compressedImage = await compressImage(_pickedImage!);
+
+        final uploadRes = await service.uploadImage(compressedImage);
+
         if (uploadRes.error == false && uploadRes.data.imageUrl.isNotEmpty) {
           finalImageUrl = uploadRes.data.imageUrl;
         } else {
-          throw Exception("Image upload failed");
+          Fluttertoast.showToast(msg: "Image upload failed");
+          return;
         }
       }
 
-      // 2. Build request body
+      /// 3️⃣ Create request body
       final body = UpdateUserProfileBodyModel(
         firstName: _firstNameCtrl.text.trim(),
         lastName: _lastNameCtrl.text.trim(),
-        image: finalImageUrl!,
+        image: finalImageUrl,
       );
 
-      // 3. Call update API
+      /// 4️⃣ Call update profile API
       final updateRes = await service.updateCutomerProfile(body);
-
+      // /// 5️⃣ Show message
       Fluttertoast.showToast(
-        msg:
-            updateRes.message ??
-            (updateRes.code == 0 ? "Profile updated" : "Update failed"),
+        msg: updateRes.message ?? "Profile updated successfully",
       );
 
+      /// 6️⃣ Refresh profile data
       if (updateRes.code == 0) {
-        // Optional: refresh profile data
         ref.invalidate(profileController);
         ref.refresh(profileController);
         Navigator.pop(context);
       }
     } catch (e, st) {
       log("Update error: $e\n$st");
-      Fluttertoast.showToast(msg: "Error: $e");
+      Fluttertoast.showToast(msg: "Something went wrong");
     } finally {
       if (mounted) setState(() => _isLoading = false);
     }
